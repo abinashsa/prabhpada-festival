@@ -115,6 +115,13 @@
   .confirm .rid{margin-top:16px;font-size:12px;color:var(--ink-soft);}
   .pay-box{background:var(--parchment-2);border:1px dashed var(--gold);padding:16px;border-radius:3px;margin-top:20px;font-size:13.5px;text-align:left;color:var(--ink-soft);}
   .pay-box b{color:var(--ink);}
+  .pay-links{display:flex;flex-direction:column;gap:8px;margin:14px 0;}
+  .pay-link{display:block;text-align:center;padding:11px;border-radius:3px;font-weight:600;font-size:14px;text-decoration:none;}
+  .pay-link.venmo{background:#3D95CE;color:#fff;}
+  .pay-link.paypal{background:#003087;color:#fff;}
+  .pay-link.zelle{background:#fff;border:1px solid #d8c79a;color:var(--ink-soft);font-weight:400;}
+  .pay-link.zelle b{color:var(--ink);}
+  .pay-note{font-size:11.5px;color:#9a8f7d;font-style:italic;}
 
   footer{background:var(--indigo-2);color:#9aa3c0;text-align:center;padding:26px 20px;font-size:12.5px;}
 
@@ -137,7 +144,7 @@
   <div class="container">
     <div class="eyebrow mono">You're Warmly Invited</div>
     <h1>The Legendary Festival</h1>
-    <p class="sub">A joyous day in honor of Srila Prabhupada — celebrating the life, the love, and the mission of the Founder-Ācārya of ISKCON. Come as you are, bring your family, and join a community that would love to have you.</p>
+    <p class="sub">A joyous day of kirtan, remembrance, and prasādam — honoring the life and mission of Srila Prabhupada, the Founder-Ācārya of ISKCON. All devotees, families, and friends near and far are warmly welcome — come as you are.</p>
 
     <div class="sun-arc">
       <svg viewBox="0 0 520 130" fill="none">
@@ -303,9 +310,14 @@
         <p style="color:var(--ink-soft);font-size:14.5px;" id="confirmText"></p>
 
         <div class="pay-box">
-          <b>Completing your donation:</b> organizers will follow up by email with payment details
-          (Venmo / Zelle / at the door). This placeholder can be replaced with your temple's actual
-          payment info once the site is finalized.
+          <b>Complete your donation of <span id="payAmt">$20</span>:</b> tap an option below, or pay at
+          the door on the day of the festival.
+          <div class="pay-links">
+            <a href="https://venmo.com/u/YourTempleVenmo" target="_blank" rel="noopener" class="pay-link venmo">Pay with Venmo</a>
+            <a href="https://paypal.me/YourTemplePayPal" target="_blank" rel="noopener" class="pay-link paypal">Pay with PayPal</a>
+            <div class="pay-link zelle">Zelle: <b>your-temple@email.org</b></div>
+          </div>
+          <div class="pay-note">These are placeholder links — swap in your temple's real Venmo, PayPal, and Zelle details before sharing this page.</div>
         </div>
 
         <div class="rid mono" id="regId"></div>
@@ -374,6 +386,7 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
   document.getElementById('confirmStage').style.display='block';
   document.getElementById('confirmText').textContent =
     `Thank you, ${fullName}. You're registered as ${currentType==='family' ? 'a family of '+guestCount : 'an individual'} — $${currentAmt} donation.`;
+  document.getElementById('payAmt').textContent = '$'+currentAmt;
   document.getElementById('regId').textContent = 'Confirmation ID: ' + regId;
   window.scrollTo({top: document.getElementById('confirmStage').offsetTop - 40, behavior: 'smooth'});
 });
