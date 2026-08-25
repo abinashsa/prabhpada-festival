@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Srila Prabhupada Festival 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --parchment:#F7EEDB;
+    --parchment-2:#F0E4C8;
+    --indigo:#1C2748;
+    --indigo-2:#141d38;
+    --saffron:#E38B29;
+    --saffron-dark:#C46F17;
+    --vermillion:#9B3B30;
+    --gold:#BE9A4B;
+    --ink:#2A2018;
+    --ink-soft:#5b5145;
+    --white:#fffdf7;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--parchment);color:var(--ink);font-family:'Work Sans',sans-serif;line-height:1.5;}
+  h1,h2,h3{font-family:'Fraunces',serif;margin:0;}
+  .mono{font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;}
+  a{color:inherit;}
+  button{font-family:inherit;cursor:pointer;}
+  .container{max-width:880px;margin:0 auto;padding:0 24px;}
+
+  /* HERO */
+  .hero{
+    background-image:
+      linear-gradient(180deg, rgba(15,20,42,.88) 0%, rgba(20,29,56,.92) 55%, rgba(20,29,56,.97) 100%),
+      url('https://collectionapi.metmuseum.org/api/collection/v1/iiif/65594/1592348/main-image');
+    background-size:cover;
+    background-position:center 30%;
+    color:var(--white);position:relative;overflow:hidden;padding:64px 0 56px;
+  }
+  .hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:6px;background:linear-gradient(90deg,var(--saffron),var(--gold),var(--saffron));}
+  .art-credit{position:absolute;bottom:12px;right:16px;font-size:9.5px;color:rgba(216,220,237,.55);letter-spacing:.02em;}
+  .arch-wrap{display:flex;justify-content:center;margin-bottom:8px;}
+  .eyebrow{text-align:center;font-size:12.5px;text-transform:uppercase;color:var(--gold);margin-bottom:14px;}
+  .hero h1{text-align:center;font-size:clamp(34px,6vw,58px);font-style:italic;font-weight:600;color:var(--white);}
+  .hero .sub{text-align:center;max-width:520px;margin:14px auto 0;color:#d8dced;font-size:16px;}
+  .sun-arc{max-width:520px;margin:36px auto 0;padding:0 16px;}
+  .sun-arc svg{width:100%;height:auto;display:block;}
+  .arc-labels{display:flex;justify-content:space-between;max-width:520px;margin:2px auto 0;padding:0 20px;font-size:11px;color:#b9c0dc;}
+  .hero-cta{display:flex;justify-content:center;margin-top:34px;}
+  .btn{display:inline-block;background:var(--saffron);color:var(--indigo-2);font-weight:600;padding:13px 30px;border-radius:3px;border:none;font-size:15px;text-decoration:none;transition:transform .15s ease, background .15s ease;}
+  .btn:hover{background:var(--saffron-dark);color:var(--white);transform:translateY(-1px);}
+  .btn:focus-visible{outline:2px solid var(--gold);outline-offset:3px;}
+  .btn-outline{background:transparent;border:1px solid var(--gold);color:var(--gold);}
+  .btn-outline:hover{background:rgba(190,154,75,.12);color:var(--gold);}
+
+  /* DETAILS STRIP */
+  .details{background:var(--parchment-2);border-bottom:1px solid #e2d3ab;}
+  .details-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;text-align:center;padding:26px 0;}
+  .details-grid div{padding:6px 12px;border-left:1px solid #dcccA0;}
+  .details-grid div:first-child{border-left:none;}
+  .details-grid .label{font-size:10.5px;text-transform:uppercase;color:var(--vermillion);margin-bottom:6px;}
+  .details-grid .value{font-size:15px;font-weight:500;}
+
+  /* ABOUT */
+  .section{padding:56px 0;}
+  .section h2{font-size:26px;font-style:italic;font-weight:600;color:var(--indigo);margin-bottom:16px;}
+  .rule{width:44px;height:2px;background:var(--saffron);margin-bottom:20px;}
+  .about p{max-width:640px;color:var(--ink-soft);font-size:15.5px;}
+
+  /* SCHEDULE-ish note card */
+  .note-card{background:var(--white);border:1px solid #e6d8b3;border-left:4px solid var(--vermillion);padding:18px 20px;border-radius:2px;max-width:640px;font-size:14px;color:var(--ink-soft);margin-top:18px;}
+
+  .prabhupada-slot{max-width:640px;margin-top:22px;border:1.5px dashed var(--gold);border-radius:4px;background:linear-gradient(135deg,#fbf5e6,#f3e7c9);padding:26px;}
+  .slot-inner{display:flex;gap:16px;align-items:flex-start;}
+  .slot-icon{font-size:22px;color:var(--saffron-dark);line-height:1;}
+  .slot-text{font-size:13.5px;color:var(--ink-soft);}
+  .slot-text b{color:var(--ink);}
+
+  /* PRICING */
+  .pricing{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:640px;margin-top:8px;}
+  .price-card{background:var(--white);border:1px solid #e6d8b3;padding:22px;border-radius:3px;}
+  .price-card .amt{font-family:'Fraunces',serif;font-size:34px;color:var(--vermillion);font-weight:600;}
+  .price-card .who{font-size:13px;text-transform:uppercase;color:var(--ink-soft);margin-top:2px;}
+
+  /* FORM */
+  .form-wrap{background:var(--white);border:1px solid #e6d8b3;border-radius:4px;padding:32px;max-width:640px;position:relative;}
+  .form-wrap::before{content:"";position:absolute;top:14px;left:14px;right:14px;bottom:14px;border:1px solid #ecdfb8;border-radius:2px;pointer-events:none;}
+  .field{margin-bottom:18px;}
+  label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);margin-bottom:6px;}
+  input[type=text],input[type=email],input[type=tel],input[type=number],textarea{width:100%;padding:11px 12px;border:1px solid #d8c79a;border-radius:2px;background:#fffef9;font-family:'Work Sans',sans-serif;font-size:14.5px;color:var(--ink);}
+  input:focus,textarea:focus,button:focus-visible{outline:2px solid var(--saffron-dark);outline-offset:1px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .type-choice{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .type-opt{border:1px solid #d8c79a;border-radius:3px;padding:14px;cursor:pointer;background:#fffef9;}
+  .type-opt.active{border-color:var(--vermillion);background:#fbf0e4;}
+  .type-opt .t{font-weight:600;font-size:14.5px;}
+  .type-opt .p{font-family:'Fraunces',serif;color:var(--vermillion);font-size:20px;margin-top:2px;}
+  .guests-field{display:none;}
+  .guests-field.show{display:block;}
+  .total-row{display:flex;justify-content:space-between;align-items:baseline;border-top:1px dashed #d8c79a;padding-top:16px;margin-top:6px;margin-bottom:20px;}
+  .total-row .tl{font-size:13px;text-transform:uppercase;color:var(--ink-soft);}
+  .total-row .tv{font-family:'Fraunces',serif;font-size:28px;color:var(--vermillion);font-weight:600;}
+  .submit-btn{width:100%;padding:14px;font-size:15px;}
+  .err{color:var(--vermillion);font-size:12.5px;margin-top:-10px;margin-bottom:14px;display:none;}
+  .err.show{display:block;}
+
+  /* CONFIRMATION */
+  .confirm{background:var(--white);border:1px solid #e6d8b3;border-radius:4px;padding:36px;text-align:center;max-width:640px;}
+  .confirm .mark{width:46px;height:46px;border-radius:50%;background:var(--saffron);color:var(--white);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px;}
+  .confirm h3{font-size:22px;font-style:italic;color:var(--indigo);margin-bottom:8px;}
+  .confirm .rid{margin-top:16px;font-size:12px;color:var(--ink-soft);}
+  .pay-box{background:var(--parchment-2);border:1px dashed var(--gold);padding:16px;border-radius:3px;margin-top:20px;font-size:13.5px;text-align:left;color:var(--ink-soft);}
+  .pay-box b{color:var(--ink);}
+
+  footer{background:var(--indigo-2);color:#9aa3c0;text-align:center;padding:26px 20px;font-size:12.5px;}
+
+  @media(max-width:560px){
+    .details-grid{grid-template-columns:1fr;gap:10px;}
+    .details-grid div{border-left:none;border-top:1px solid #dcccA0;padding-top:14px;}
+    .details-grid div:first-child{border-top:none;padding-top:6px;}
+    .row2{grid-template-columns:1fr;}
+    .type-choice{grid-template-columns:1fr;}
+    .form-wrap{padding:22px;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="container">
+    <div class="eyebrow mono">A Day of Kirtan &amp; Remembrance</div>
+    <h1>Srila Prabhupada Festival</h1>
+    <p class="sub">Glorifying the Founder-Ācārya of ISKCON and the mission he gave his life to spread.</p>
+
+    <div class="sun-arc">
+      <svg viewBox="0 0 520 130" fill="none">
+        <path d="M20 120 A 240 240 0 0 1 500 120" stroke="#BE9A4B" stroke-width="1.4" stroke-dasharray="2 6" fill="none"/>
+        <circle cx="260" cy="34" r="9" fill="#E38B29"/>
+        <circle cx="20" cy="120" r="3" fill="#BE9A4B"/>
+        <circle cx="500" cy="120" r="3" fill="#BE9A4B"/>
+      </svg>
+      <div class="arc-labels mono"><span>10:00 AM</span><span>8:00 PM</span></div>
+    </div>
+
+    <div class="hero-cta">
+      <a href="#register" class="btn">Register &amp; Reserve Your Place</a>
+    </div>
+  </div>
+  <div class="art-credit">Radha &amp; Krishna, Kota, India, ca. 1720 &middot; The Met, Public Domain</div>
+</div>
+
+<div class="details">
+  <div class="container">
+    <div class="details-grid">
+      <div>
+        <div class="label mono">Date</div>
+        <div class="value">Saturday, December 5, 2026</div>
+      </div>
+      <div>
+        <div class="label mono">Time</div>
+        <div class="value">10:00 AM – 8:00 PM</div>
+      </div>
+      <div>
+        <div class="label mono">Location</div>
+        <div class="value" id="venueValue">To be announced</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section about">
+  <div class="container">
+    <h2>Why We Gather</h2>
+    <div class="rule"></div>
+    <p>His Divine Grace A.C. Bhaktivedanta Swami Prabhupada carried the chanting of the Hare Krishna
+      mahā-mantra from India to the world, founding ISKCON and asking his students to carry it further
+      still. This festival is a day to gather as one community &mdash; through kirtan, class, and prasādam
+      &mdash; to remember his life and renew that mission together.</p>
+    <div class="note-card">
+      The venue is being finalized and will be posted here and emailed to everyone registered as soon as
+      it's confirmed. Register now to hold your place — no need to wait on the address.
+    </div>
+
+    <div class="prabhupada-slot" id="prabhupadaSlot">
+      <div class="slot-inner">
+        <div class="slot-icon">☀</div>
+        <div class="slot-text">
+          <b>Srila Prabhupada's photo goes here.</b><br>
+          Swap this placeholder for a temple-approved portrait whenever you have one — upload it and it
+          drops straight in.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="background:var(--parchment-2);border-top:1px solid #e2d3ab;border-bottom:1px solid #e2d3ab;">
+  <div class="container">
+    <h2>Suggested Donation</h2>
+    <div class="rule"></div>
+    <p style="color:var(--ink-soft);font-size:15px;max-width:560px;">
+      Your donation helps cover prasādam, hall costs, and festival seva. No one is turned away for lack
+      of funds — reach out if you need help.
+    </p>
+    <div class="pricing">
+      <div class="price-card">
+        <div class="amt">$20</div>
+        <div class="who mono">Per Person</div>
+      </div>
+      <div class="price-card">
+        <div class="amt">$50</div>
+        <div class="who mono">Per Family</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" id="register">
+  <div class="container">
+    <h2>Register</h2>
+    <div class="rule"></div>
+
+    <div id="formStage">
+      <form class="form-wrap" id="regForm">
+        <div class="field">
+          <label for="fullName">Full Name</label>
+          <input type="text" id="fullName" required>
+          <div class="err" id="err-fullName">Please enter your name.</div>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" required>
+            <div class="err" id="err-email">Please enter a valid email.</div>
+          </div>
+          <div class="field">
+            <label for="phone">Phone</label>
+            <input type="tel" id="phone" placeholder="(optional)">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Registering As</label>
+          <div class="type-choice">
+            <div class="type-opt active" id="opt-individual" data-type="individual" data-amt="20">
+              <div class="t">Individual</div>
+              <div class="p">$20</div>
+            </div>
+            <div class="type-opt" id="opt-family" data-type="family" data-amt="50">
+              <div class="t">Family</div>
+              <div class="p">$50</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field guests-field" id="guestsField">
+          <label for="guestCount">Number in Family (for headcount &amp; prasādam planning)</label>
+          <input type="number" id="guestCount" min="2" value="2">
+        </div>
+
+        <div class="field">
+          <label for="message">Note to Organizers (optional)</label>
+          <textarea id="message" rows="2" placeholder="Dietary needs, volunteering interest, anything else"></textarea>
+        </div>
+
+        <div class="total-row">
+          <div class="tl mono">Donation Due</div>
+          <div class="tv" id="totalAmt">$20</div>
+        </div>
+
+        <button type="submit" class="btn submit-btn">Confirm Registration</button>
+      </form>
+    </div>
+
+    <div id="confirmStage" style="display:none;">
+      <div class="confirm">
+        <div class="mark">✓</div>
+        <h3>You're Registered</h3>
+        <p style="color:var(--ink-soft);font-size:14.5px;" id="confirmText"></p>
+
+        <div class="pay-box">
+          <b>Completing your donation:</b> organizers will follow up by email with payment details
+          (Venmo / Zelle / at the door). This placeholder can be replaced with your temple's actual
+          payment info once the site is finalized.
+        </div>
+
+        <div class="rid mono" id="regId"></div>
+        <div style="margin-top:22px;">
+          <button class="btn btn-outline" id="newRegBtn" type="button">Register Someone Else</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Srila Prabhupada Festival &middot; December 5, 2026 &middot; 10:00 AM–8:00 PM
+</footer>
+
+<script>
+let currentType = 'individual';
+let currentAmt = 20;
+
+document.querySelectorAll('.type-opt').forEach(opt=>{
+  opt.addEventListener('click', ()=>{
+    document.querySelectorAll('.type-opt').forEach(o=>o.classList.remove('active'));
+    opt.classList.add('active');
+    currentType = opt.dataset.type;
+    currentAmt = parseInt(opt.dataset.amt,10);
+    document.getElementById('totalAmt').textContent = '$'+currentAmt;
+    document.getElementById('guestsField').classList.toggle('show', currentType==='family');
+  });
+});
+
+function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+document.getElementById('regForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const fullName = document.getElementById('fullName').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const guestCount = currentType==='family' ? (parseInt(document.getElementById('guestCount').value,10)||2) : 1;
+  const message = document.getElementById('message').value.trim();
+
+  let ok = true;
+  document.getElementById('err-fullName').classList.remove('show');
+  document.getElementById('err-email').classList.remove('show');
+  if(!fullName){ document.getElementById('err-fullName').classList.add('show'); ok=false; }
+  if(!validEmail(email)){ document.getElementById('err-email').classList.add('show'); ok=false; }
+  if(!ok) return;
+
+  const regId = 'REG-' + Date.now().toString(36).toUpperCase();
+  const entry = {
+    regId, fullName, email, phone, type: currentType,
+    guestCount, amount: currentAmt, message,
+    submittedAt: new Date().toISOString()
+  };
+
+  const submitBtn = e.target.querySelector('.submit-btn');
+  submitBtn.textContent = 'Saving…';
+  submitBtn.disabled = true;
+
+  try{
+    await window.storage.set('registration:'+regId, JSON.stringify(entry), true);
+  }catch(err){
+    console.error('Storage error', err);
+  }
+
+  document.getElementById('formStage').style.display='none';
+  document.getElementById('confirmStage').style.display='block';
+  document.getElementById('confirmText').textContent =
+    `Thank you, ${fullName}. You're registered as ${currentType==='family' ? 'a family of '+guestCount : 'an individual'} — $${currentAmt} donation.`;
+  document.getElementById('regId').textContent = 'Confirmation ID: ' + regId;
+  window.scrollTo({top: document.getElementById('confirmStage').offsetTop - 40, behavior: 'smooth'});
+});
+
+document.getElementById('newRegBtn').addEventListener('click', ()=>{
+  document.getElementById('regForm').reset();
+  document.querySelectorAll('.type-opt').forEach(o=>o.classList.remove('active'));
+  document.getElementById('opt-individual').classList.add('active');
+  currentType='individual'; currentAmt=20;
+  document.getElementById('totalAmt').textContent='$20';
+  document.getElementById('guestsField').classList.remove('show');
+  document.getElementById('confirmStage').style.display='none';
+  document.getElementById('formStage').style.display='block';
+  window.scrollTo({top: document.getElementById('register').offsetTop - 20, behavior:'smooth'});
+});
+</script>
+
+</body>
+</html>
