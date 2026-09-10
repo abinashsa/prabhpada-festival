@@ -201,7 +201,51 @@
 const KEY_STORE = 'festival-admin-key';
 let adminKey = sessionStorage.getItem(KEY_STORE) || '';
 
+/*
+ * Served by the Spring app these stay as they are, and the key is checked in Java.
+ * The GitHub Pages build rewrites them to talk to the Apps Script web app instead.
+ * The key is never written into this file: you type it, and it is held for the tab
+ * only. Baking it in would let anyone who finds this page mail every registrant.
+ */
+const ADMIN_URL = '/api/admin';
+const ADMIN_DIRECT = false;
+
 function headers(){ return { 'Content-Type':'application/json', 'X-Admin-Key': adminKey }; }
+
+/** Marks the errors that mean "your key was refused", so the page can re-lock. */
+function refused(message){
+  const err = new Error(message);
+  err.unauthorized = true;
+  return err;
+}
+
+/** One POST to the script, carrying whatever key the organizer typed. */
+async function callScript(payload, key){
+  const res = await fetch(ADMIN_URL, {
+    method: 'POST',
+    // text/plain avoids a CORS preflight, which the Apps Script web app cannot answer.
+    headers: {'Content-Type': 'text/plain;charset=utf-8'},
+    body: JSON.stringify(Object.assign({adminKey: key === undefined ? adminKey : key}, payload))
+  });
+  if(!res.ok) throw new Error('The script responded ' + res.status);
+  const body = await res.json();
+  if(body.error === 'unauthorized') throw refused('unauthorized');
+  if(body.error) throw new Error(body.error);
+  return body;
+}
+
+/** Counts worked out here when there is no server to do it. */
+function statsFromRows(rows){
+  let registrations = 0, attending = 0, largestParty = 0;
+  (rows || []).forEach(row => {
+    if(!String(row[3] || '').trim()) return;
+    registrations++;
+    const people = Math.max(parseInt(row[5], 10) || 1, 1);
+    attending += people;
+    largestParty = Math.max(largestParty, people);
+  });
+  return { registrations, attending, largestParty };
+}
 
 function note(id, message, kind){
   const box = document.getElementById(id);
@@ -210,8 +254,40 @@ function note(id, message, kind){
 }
 
 async function unlock(key){
-  const res = await fetch('/api/admin/unlock', { method:'POST', headers:{ 'X-Admin-Key': key } });
+  if(ADMIN_DIRECT){
+    try{
+      await callScript({action: 'list'}, key);   // the roster read is the key check
+      return true;
+    }catch(err){
+      if(err.unauthorized) return false;
+      throw err;
+    }
+  }
+  const res = await fetch(ADMIN_URL + '/unlock', { method:'POST', headers:{ 'X-Admin-Key': key } });
   return res.ok;
+}
+
+async function fetchStats(){
+  if(ADMIN_DIRECT){
+    return statsFromRows((await callScript({action: 'list'})).rows);
+  }
+  const res = await fetch(ADMIN_URL + '/stats', { headers: headers() });
+  if(res.status === 401) throw refused('unauthorized');
+  if(!res.ok) throw new Error('status ' + res.status);
+  return res.json();
+}
+
+async function sendBlast(subject, message){
+  if(ADMIN_DIRECT){
+    return callScript({action: 'email', subject: subject, body: message});
+  }
+  const res = await fetch(ADMIN_URL + '/email', {
+    method: 'POST', headers: headers(), body: JSON.stringify({subject, message})
+  });
+  if(res.status === 401) throw refused('unauthorized');
+  const body = await res.json();
+  if(!res.ok) throw new Error(body.message || 'The message did not go out.');
+  return body;
 }
 
 function showDashboard(){
@@ -277,10 +353,7 @@ function drawSeats(count){
 async function loadStats(){
   note('statsNote', '', 'bad');
   try{
-    const res = await fetch('/api/admin/stats', { headers: headers() });
-    if(res.status === 401){ lockOut(); return; }
-    if(!res.ok) throw new Error('status ' + res.status);
-    const stats = await res.json();
+    const stats = await fetchStats();
     document.getElementById('statAttending').textContent = stats.attending;
     document.getElementById('statRegistrations').textContent = stats.registrations;
     document.getElementById('statLargest').textContent = stats.largestParty;
@@ -289,6 +362,7 @@ async function loadStats(){
       ? 'Goes to 1 registrant'
       : 'Goes to ' + stats.registrations + ' registrants';
   }catch(err){
+    if(err.unauthorized){ lockOut(); return; }
     note('statsNote', 'Could not load the numbers from the spreadsheet. Try refreshing.', 'bad');
   }
 }
@@ -316,25 +390,15 @@ document.getElementById('confirmSend').addEventListener('click', async () => {
   const btn = document.getElementById('confirmSend');
   btn.disabled = true; btn.textContent = 'Sending…';
   try{
-    const res = await fetch('/api/admin/email', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({
-        subject: document.getElementById('subject').value.trim(),
-        message: document.getElementById('message').value.trim()
-      })
-    });
-    if(res.status === 401){ lockOut(); return; }
-    const body = await res.json();
-    if(!res.ok){
-      note('blastNote', body.message || 'The message did not go out.', 'bad');
-    } else {
-      const left = body.remainingQuota >= 0 ? ' ' + body.remainingQuota + ' sends left today.' : '';
-      note('blastNote', 'Sent to ' + body.sent + (body.sent === 1 ? ' person.' : ' people.') + left, 'good');
-      document.getElementById('blastForm').reset();
-    }
+    const body = await sendBlast(
+      document.getElementById('subject').value.trim(),
+      document.getElementById('message').value.trim());
+    const left = body.remainingQuota >= 0 ? ' ' + body.remainingQuota + ' sends left today.' : '';
+    note('blastNote', 'Sent to ' + body.sent + (body.sent === 1 ? ' person.' : ' people.') + left, 'good');
+    document.getElementById('blastForm').reset();
   }catch(err){
-    note('blastNote', 'Could not reach the server. Nothing was sent.', 'bad');
+    if(err.unauthorized){ lockOut(); return; }
+    note('blastNote', err.message || 'Nothing was sent.', 'bad');
   }
   document.getElementById('confirmBox').classList.remove('show');
   btn.disabled = false; btn.textContent = 'Send now';

@@ -12,6 +12,10 @@
 // Must match festival.sheets.webhook-secret in the app. Change it to a long random string.
 const SECRET = 'CHANGE_ME_TO_A_LONG_RANDOM_STRING';
 
+// Typed into the admin page by the organizer. It lives here, in your own Google
+// account - never in the published page, or anyone could mail your registrants.
+const ADMIN_KEY = 'CHANGE_ME_TO_THE_ADMIN_KEY';
+
 const HEADER = ['Confirmation ID', 'Submitted At', 'Full Name', 'Email', 'Phone', 'Attending', 'Note'];
 const EMAIL_COLUMN = 4;   // 1-based: column D
 const FIRST_DATA_ROW = 2;
@@ -31,7 +35,9 @@ function doPost(e) {
       return reply(register(sheet, request));
     }
 
-    if (request.secret !== SECRET) {
+    // Reading the roster and sending mail need either the app's secret or the
+    // organizer's key. Neither is ever published.
+    if (request.secret !== SECRET && request.adminKey !== ADMIN_KEY) {
       return reply({ error: 'unauthorized' });
     }
 

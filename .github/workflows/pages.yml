@@ -1,14 +1,16 @@
 name: Publish festival page
 
-# Publishes only the public registration page to GitHub Pages. The admin page and
-# the Spring app are deliberately left out: Pages serves static files, so an admin
-# key checked in the browser would be no protection at all.
+# Publishes the registration page and the organizer desk to GitHub Pages, both
+# pointed at the Apps Script web app. Neither carries a key: the desk asks for one
+# and holds it for the tab only. A key baked into the page would let anyone who
+# found the URL read the roster and mail every registrant.
 
 on:
   push:
     branches: [main]
     paths:
       - src/main/resources/static/index.html
+      - src/main/resources/static/admin.html
       - .github/workflows/pages.yml
   workflow_dispatch:
 
@@ -27,7 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Point the form at the Apps Script web app
+      - name: Point both pages at the Apps Script web app
         env:
           APPS_SCRIPT_URL: ${{ vars.APPS_SCRIPT_URL }}
         run: |
@@ -39,35 +41,44 @@ jobs:
 
           mkdir -p _site
           cp src/main/resources/static/index.html _site/index.html
+          cp src/main/resources/static/admin.html _site/admin.html
 
-          # Swap the two constants so the published page posts straight to the script.
+          # Swap the constants so each published page talks to the script directly.
           python3 - "$APPS_SCRIPT_URL" <<'PY'
           import io, sys
           url = sys.argv[1]
-          path = '_site/index.html'
-          page = io.open(path, encoding='utf-8').read()
 
-          before = page
-          page = page.replace("const REGISTER_URL = '/api/registrations';",
-                              "const REGISTER_URL = '%s';" % url, 1)
-          page = page.replace("const REGISTER_DIRECT = false;",
-                              "const REGISTER_DIRECT = true;", 1)
-          if page == before:
-              sys.exit('index.html no longer contains the constants this build rewrites')
+          swaps = {
+              '_site/index.html': [
+                  ("const REGISTER_URL = '/api/registrations';", "const REGISTER_URL = '%s';" % url),
+                  ("const REGISTER_DIRECT = false;", "const REGISTER_DIRECT = true;"),
+              ],
+              '_site/admin.html': [
+                  ("const ADMIN_URL = '/api/admin';", "const ADMIN_URL = '%s';" % url),
+                  ("const ADMIN_DIRECT = false;", "const ADMIN_DIRECT = true;"),
+              ],
+          }
 
-          io.open(path, 'w', encoding='utf-8').write(page)
-          print('Published page will post to', url)
+          for path, pairs in swaps.items():
+              page = io.open(path, encoding='utf-8').read()
+              for old, new in pairs:
+                  if old not in page:
+                      sys.exit('%s no longer contains: %s' % (path, old))
+                  page = page.replace(old, new, 1)
+              io.open(path, 'w', encoding='utf-8').write(page)
+              print(path, 'will talk to', url)
           PY
 
-      - name: Refuse to publish anything sensitive
+      - name: Refuse to publish a page carrying a key
         run: |
-          # A published page is world-readable; make sure nothing private rode along.
-          if [ -f _site/admin.html ]; then
-            echo "::error::admin.html must not be published"; exit 1
+          # These pages are world-readable. The desk must ask for the key, never hold
+          # one: a published key would let a stranger mail every registrant.
+          if grep -nE "adminKey: *['\"][^'\"]|const (ADMIN_KEY|SECRET) *=|webhook-secret" _site/*.html; then
+            echo "::error::A key or secret is baked into a page about to be published"; exit 1
           fi
-          if grep -rlE "webhook-secret|festival\.admin\.key|X-Admin-Key" _site/; then
-            echo "::error::Found something secret in the page about to be published"; exit 1
-          fi
+          for page in _site/index.html _site/admin.html; do
+            test -f "$page" || { echo "::error::$page missing"; exit 1; }
+          done
           ls -la _site/
 
       - uses: actions/configure-pages@v5
