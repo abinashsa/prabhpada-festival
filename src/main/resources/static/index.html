@@ -299,6 +299,7 @@
           <div class="tv" id="totalAmt">$20</div>
         </div>
 
+        <div class="err" id="err-submit">Sorry — we couldn't save your registration. Please try again.</div>
         <button type="submit" class="btn submit-btn">Confirm Registration</button>
       </form>
     </div>
@@ -365,29 +366,43 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
   if(!validEmail(email)){ document.getElementById('err-email').classList.add('show'); ok=false; }
   if(!ok) return;
 
-  const regId = 'REG-' + Date.now().toString(36).toUpperCase();
   const entry = {
-    regId, fullName, email, phone, type: currentType,
-    guestCount, amount: currentAmt, message,
-    submittedAt: new Date().toISOString()
+    fullName, email, phone, type: currentType,
+    guestCount, amount: currentAmt, message
   };
 
   const submitBtn = e.target.querySelector('.submit-btn');
+  const submitLabel = submitBtn.textContent;
   submitBtn.textContent = 'Saving…';
   submitBtn.disabled = true;
 
+  let saved;
   try{
-    await window.storage.set('registration:'+regId, JSON.stringify(entry), true);
+    const res = await fetch('/api/registrations', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(entry)
+    });
+    if(!res.ok) throw new Error('Server responded ' + res.status);
+    saved = await res.json();
   }catch(err){
-    console.error('Storage error', err);
+    console.error('Registration failed', err);
+    submitBtn.textContent = submitLabel;
+    submitBtn.disabled = false;
+    document.getElementById('err-submit').classList.add('show');
+    return;
   }
+
+  document.getElementById('err-submit').classList.remove('show');
+  submitBtn.textContent = submitLabel;
+  submitBtn.disabled = false;
 
   document.getElementById('formStage').style.display='none';
   document.getElementById('confirmStage').style.display='block';
   document.getElementById('confirmText').textContent =
-    `Thank you, ${fullName}. You're registered as ${currentType==='family' ? 'a family of '+guestCount : 'an individual'} — $${currentAmt} donation.`;
-  document.getElementById('payAmt').textContent = '$'+currentAmt;
-  document.getElementById('regId').textContent = 'Confirmation ID: ' + regId;
+    `Thank you, ${saved.fullName}. You're registered as ${saved.type==='family' ? 'a family of '+saved.guestCount : 'an individual'} — $${saved.amount} donation.`;
+  document.getElementById('payAmt').textContent = '$'+saved.amount;
+  document.getElementById('regId').textContent = 'Confirmation ID: ' + saved.regId;
   window.scrollTo({top: document.getElementById('confirmStage').offsetTop - 40, behavior: 'smooth'});
 });
 
