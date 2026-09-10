@@ -131,6 +131,31 @@ any machine you don't control.
 message rather than confirming. A registration is only confirmed once it is
 actually in the sheet, so nothing is lost silently; the registrant retries.
 
+## Publishing the registration page
+
+`.github/workflows/pages.yml` publishes **only** `index.html` to GitHub Pages on
+each push to `main`, rewriting the form to post straight to the Apps Script web
+app. The admin page and the Spring app are deliberately not published: Pages
+serves static files, so an admin key checked in the browser would protect
+nothing.
+
+The published page carries **no secret**. It calls the script's `register`
+action, which only writes one row and returns that row — it cannot read the
+roster or send mail, both of which still require the shared secret.
+
+To switch it on:
+
+1. Deploy the current `apps-script/Code.local.gs` (it adds `register`).
+2. *Settings* → *Secrets and variables* → *Actions* → *Variables* → add
+   **`APPS_SCRIPT_URL`** with the `/exec` URL.
+3. *Settings* → *Pages* → *Source*: **GitHub Actions**.
+4. Push to `main`.
+
+**What a public form means:** anyone can submit a registration, as with any
+sign-up page that has no login. They cannot read what others submitted. If junk
+rows appear, delete them in the sheet — and remember the roster is still only
+readable by you.
+
 ## Before going live
 
 - **Turn the Google Sheet on** (above). Until then registrations live only in

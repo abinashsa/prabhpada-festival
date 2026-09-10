@@ -285,6 +285,14 @@
 </footer>
 
 <script>
+/*
+ * Where the form sends registrations. Served by the Spring app these stay as they
+ * are; the GitHub Pages build rewrites them to post straight to the Apps Script
+ * web app, which accepts the write-only "register" action without a secret.
+ */
+const REGISTER_URL = '/api/registrations';
+const REGISTER_DIRECT = false;
+
 function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
 document.getElementById('regForm').addEventListener('submit', async (e)=>{
@@ -311,14 +319,17 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
 
   let saved, wasUpdate = false;
   try{
-    const res = await fetch('/api/registrations', {
+    // text/plain avoids a CORS preflight, which the Apps Script web app cannot answer.
+    const res = await fetch(REGISTER_URL, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(entry)
+      headers: {'Content-Type': REGISTER_DIRECT ? 'text/plain;charset=utf-8' : 'application/json'},
+      body: JSON.stringify(REGISTER_DIRECT ? Object.assign({action: 'register'}, entry) : entry)
     });
     if(!res.ok) throw new Error('Server responded ' + res.status);
-    wasUpdate = res.status === 200;   // 201 means a new registration, 200 an updated one
     saved = await res.json();
+    if(saved.error) throw new Error(saved.error);
+    // Posting directly, the script says so; through the app, 201 is new and 200 an update.
+    wasUpdate = REGISTER_DIRECT ? !!saved.updated : res.status === 200;
   }catch(err){
     console.error('Registration failed', err);
     submitBtn.textContent = submitLabel;

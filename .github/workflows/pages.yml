@@ -1,0 +1,86 @@
+name: Publish festival page
+
+# Publishes only the public registration page to GitHub Pages. The admin page and
+# the Spring app are deliberately left out: Pages serves static files, so an admin
+# key checked in the browser would be no protection at all.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - src/main/resources/static/index.html
+      - .github/workflows/pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Point the form at the Apps Script web app
+        env:
+          APPS_SCRIPT_URL: ${{ vars.APPS_SCRIPT_URL }}
+        run: |
+          if [ -z "$APPS_SCRIPT_URL" ]; then
+            echo "::error::Set the repository variable APPS_SCRIPT_URL to the Apps Script /exec URL."
+            echo "Settings > Secrets and variables > Actions > Variables > New repository variable"
+            exit 1
+          fi
+
+          mkdir -p _site
+          cp src/main/resources/static/index.html _site/index.html
+
+          # Swap the two constants so the published page posts straight to the script.
+          python3 - "$APPS_SCRIPT_URL" <<'PY'
+          import io, sys
+          url = sys.argv[1]
+          path = '_site/index.html'
+          page = io.open(path, encoding='utf-8').read()
+
+          before = page
+          page = page.replace("const REGISTER_URL = '/api/registrations';",
+                              "const REGISTER_URL = '%s';" % url, 1)
+          page = page.replace("const REGISTER_DIRECT = false;",
+                              "const REGISTER_DIRECT = true;", 1)
+          if page == before:
+              sys.exit('index.html no longer contains the constants this build rewrites')
+
+          io.open(path, 'w', encoding='utf-8').write(page)
+          print('Published page will post to', url)
+          PY
+
+      - name: Refuse to publish anything sensitive
+        run: |
+          # A published page is world-readable; make sure nothing private rode along.
+          if [ -f _site/admin.html ]; then
+            echo "::error::admin.html must not be published"; exit 1
+          fi
+          if grep -rlE "webhook-secret|festival\.admin\.key|X-Admin-Key" _site/; then
+            echo "::error::Found something secret in the page about to be published"; exit 1
+          fi
+          ls -la _site/
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

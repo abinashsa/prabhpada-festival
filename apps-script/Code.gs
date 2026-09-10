@@ -21,11 +21,19 @@ function doPost(e) {
   lock.waitLock(30000);           // two people submitting at once must not interleave
   try {
     const request = JSON.parse(e.postData.contents);
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+    ensureHeader(sheet);
+
+    // The only action a public page may call. It writes one row and reports back
+    // that row alone -- it can never read the roster or send mail, so the page
+    // needs no secret and nothing sensitive is exposed by publishing it.
+    if (request.action === 'register') {
+      return reply(register(sheet, request));
+    }
+
     if (request.secret !== SECRET) {
       return reply({ error: 'unauthorized' });
     }
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
-    ensureHeader(sheet);
 
     if (request.action === 'list') {
       return reply({ rows: dataRows(sheet) });
@@ -42,6 +50,57 @@ function doPost(e) {
   } finally {
     lock.releaseLock();
   }
+}
+
+/**
+ * Registers one person from the public form. Email is the identity: a repeat
+ * submission updates that row, keeping its confirmation id and original sign-up
+ * time. Returns only the caller's own row.
+ */
+function register(sheet, request) {
+  const fullName = String(request.fullName || '').trim();
+  const email = String(request.email || '').trim();
+  const guestCount = Math.max(parseInt(request.guestCount, 10) || 1, 1);
+  const phone = String(request.phone || '').trim();
+  const message = String(request.message || '').trim();
+
+  if (!fullName) {
+    return { error: 'A name is required' };
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { error: 'A valid email address is required' };
+  }
+
+  const rows = dataRows(sheet);
+  const wanted = emailKey(email);
+  const now = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
+
+  for (let i = 0; i < rows.length; i++) {
+    if (emailKey(rows[i][EMAIL_COLUMN - 1]) === wanted) {
+      const regId = rows[i][0];
+      const submittedAt = rows[i][1];      // the original sign-up time is kept
+      const row = [regId, submittedAt, fullName, email, phone, guestCount, message];
+      sheet.getRange(FIRST_DATA_ROW + i, 1, 1, HEADER.length).setValues([row]);
+      return { regId: regId, fullName: fullName, guestCount: guestCount, updated: true };
+    }
+  }
+
+  const regId = nextRegId(rows);
+  sheet.appendRow([regId, now, fullName, email, phone, guestCount, message]);
+  return { regId: regId, fullName: fullName, guestCount: guestCount, updated: false };
+}
+
+/** Continues the REG-0001 sequence past whatever the sheet already holds. */
+function nextRegId(rows) {
+  let highest = 0;
+  rows.forEach(function (row) {
+    const match = /^REG-(\d+)$/.exec(String(row[0] || '').trim());
+    if (match) {
+      highest = Math.max(highest, parseInt(match[1], 10));
+    }
+  });
+  const next = String(highest + 1);
+  return 'REG-' + '0000'.slice(next.length) + next;
 }
 
 /** Replaces the row for this email, or appends one if the address is new. */
