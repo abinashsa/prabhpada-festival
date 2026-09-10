@@ -31,13 +31,18 @@ jobs:
 
       - name: Point both pages at the Apps Script web app
         env:
-          APPS_SCRIPT_URL: ${{ vars.APPS_SCRIPT_URL }}
+          # Accepted from either tab of Settings > Secrets and variables, because
+          # which one it was added to is an easy and invisible thing to get wrong.
+          APPS_SCRIPT_URL: ${{ vars.APPS_SCRIPT_URL || secrets.APPS_SCRIPT_URL }}
         run: |
           if [ -z "$APPS_SCRIPT_URL" ]; then
-            echo "::error::Set the repository variable APPS_SCRIPT_URL to the Apps Script /exec URL."
-            echo "Settings > Secrets and variables > Actions > Variables > New repository variable"
+            echo "::error::APPS_SCRIPT_URL is empty. Add it under Settings > Secrets and variables > Actions, on either the Variables or the Secrets tab, as the Apps Script /exec URL."
             exit 1
           fi
+          case "$APPS_SCRIPT_URL" in
+            https://script.google.com/macros/s/*/exec) ;;
+            *) echo "::error::APPS_SCRIPT_URL should look like https://script.google.com/macros/s/<id>/exec - got: $APPS_SCRIPT_URL"; exit 1 ;;
+          esac
 
           mkdir -p _site
           cp src/main/resources/static/index.html _site/index.html
