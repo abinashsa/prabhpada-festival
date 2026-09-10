@@ -3,3 +3,10 @@ target/
 *.iml
 .mvn/
 !.mvn/wrapper/maven-wrapper.properties
+
+# Google service-account keys — never commit these
+*service-account*.json
+*credentials*.json
+secrets/
+application-local.properties
+apps-script/Code.local.gs

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Festival Desk — Organizers Only</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --parchment:#F7EEDB;
+    --parchment-2:#F0E4C8;
+    --indigo:#1C2748;
+    --indigo-2:#141d38;
+    --saffron:#E38B29;
+    --saffron-dark:#C46F17;
+    --vermillion:#9B3B30;
+    --gold:#BE9A4B;
+    --ink:#2A2018;
+    --ink-soft:#5b5145;
+    --white:#fffdf7;
+    --rule:#e2d3ab;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--parchment);color:var(--ink);font-family:'Work Sans',sans-serif;line-height:1.5;}
+  h1,h2,h3{font-family:'Fraunces',serif;margin:0;font-weight:600;}
+  .mono{font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;}
+  button{font-family:inherit;cursor:pointer;}
+  .wrap{max-width:760px;margin:0 auto;padding:0 24px;}
+
+  header{background:var(--indigo);color:var(--white);padding:26px 0 24px;border-bottom:5px solid var(--saffron);}
+  header .eyebrow{font-size:11.5px;text-transform:uppercase;letter-spacing:.14em;color:var(--gold);}
+  header h1{font-size:26px;font-style:italic;margin-top:5px;}
+  header .sub{color:#c3cae2;font-size:13.5px;margin-top:4px;}
+
+  .btn{background:var(--saffron);color:var(--indigo-2);font-weight:600;padding:12px 26px;border-radius:3px;
+       border:none;font-size:15px;transition:background .15s ease;}
+  .btn:hover:not(:disabled){background:var(--saffron-dark);color:var(--white);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-quiet{background:transparent;border:1px solid var(--rule);color:var(--ink-soft);font-weight:500;}
+  .btn-quiet:hover:not(:disabled){background:#efe3c8;color:var(--ink);}
+  .btn-send{background:var(--vermillion);color:var(--white);}
+  .btn-send:hover:not(:disabled){background:#7f2f26;color:var(--white);}
+  :focus-visible{outline:2px solid var(--saffron);outline-offset:3px;}
+
+  label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:6px;}
+  input,textarea{width:100%;padding:11px 12px;border:1px solid #d8c79a;border-radius:3px;background:var(--white);
+                 font-family:inherit;font-size:15px;color:var(--ink);}
+  textarea{resize:vertical;min-height:120px;line-height:1.55;}
+  input:focus,textarea:focus{border-color:var(--saffron);outline:none;box-shadow:0 0 0 2px rgba(227,139,41,.18);}
+
+  /* GATE */
+  .gate{max-width:380px;margin:76px auto;text-align:center;}
+  .gate .lock{font-size:30px;color:var(--gold);}
+  .gate h2{font-size:21px;margin:10px 0 6px;}
+  .gate p{color:var(--ink-soft);font-size:14px;margin:0 0 22px;}
+  .gate input{text-align:center;letter-spacing:.28em;font-family:'IBM Plex Mono',monospace;}
+  .gate .btn{width:100%;margin-top:12px;}
+
+  .note{font-size:13.5px;padding:11px 13px;border-radius:3px;margin-top:14px;display:none;text-align:left;}
+  .note.show{display:block;}
+  .note.bad{background:#f7e3df;border:1px solid #dfb3ab;color:#7f2f26;}
+  .note.good{background:#e6efe2;border:1px solid #b9cfae;color:#3f5c33;}
+
+  /* DASHBOARD */
+  main{display:none;padding:34px 0 60px;}
+  main.show{display:block;}
+  section{margin-bottom:38px;}
+  .head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-bottom:4px;}
+  .head h2{font-size:19px;}
+  .head .act{font-size:12.5px;color:var(--ink-soft);background:none;border:none;text-decoration:underline;padding:0;}
+  .rule{height:2px;background:linear-gradient(90deg,var(--saffron),var(--gold),transparent);margin:10px 0 20px;}
+
+  .figures{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:1px;background:var(--rule);
+           border:1px solid var(--rule);border-radius:3px;overflow:hidden;}
+  .fig{background:var(--parchment-2);padding:18px 16px;}
+  .fig .n{font-family:'Fraunces',serif;font-size:40px;line-height:1;color:var(--vermillion);font-weight:600;}
+  .fig.lead .n{font-size:56px;color:var(--indigo);}
+  .fig .k{font-size:11px;text-transform:uppercase;letter-spacing:.11em;color:var(--ink-soft);margin-top:8px;}
+
+  /* Signature: one arch per person - the hall filling up, and the plates to cook. */
+  .hall{margin-top:20px;padding:18px 16px;border:1px solid var(--rule);border-radius:3px;background:var(--white);}
+  .seats{display:flex;flex-wrap:wrap;gap:5px;}
+  .seat{width:11px;height:15px;background:var(--saffron);border-radius:50% 50% 2px 2px;opacity:0;
+        animation:seat-in .32s ease forwards;}
+  @keyframes seat-in{to{opacity:1;}}
+  .hall .cap{font-size:11.5px;color:var(--ink-soft);margin-top:12px;}
+  .hall .empty{font-size:14px;color:var(--ink-soft);}
+  @media (prefers-reduced-motion:reduce){.seat{animation:none;opacity:1;}}
+
+  .field{margin-bottom:16px;}
+  .hint{font-size:12.5px;color:var(--ink-soft);margin-top:6px;}
+  .send-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+
+  .confirm{border:1px dashed var(--vermillion);background:#fbf1ee;border-radius:3px;padding:16px;
+           display:none;margin-top:16px;}
+  .confirm.show{display:block;}
+  .confirm p{margin:0 0 14px;font-size:14.5px;}
+  .confirm .row{display:flex;gap:10px;flex-wrap:wrap;}
+
+  footer{border-top:1px solid var(--rule);padding:18px 0 30px;font-size:12px;color:var(--ink-soft);}
+
+  @media (max-width:620px){
+    .figures{grid-template-columns:1fr 1fr;}
+    .fig.lead{grid-column:1 / -1;}
+  }
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <div class="wrap">
+    <div class="lock mono">&#10022;</div>
+    <h2>Festival Desk</h2>
+    <p>For organizers. Enter the key to continue.</p>
+    <form id="gateForm">
+      <label for="key" style="text-align:left">Access key</label>
+      <input type="password" id="key" inputmode="numeric" autocomplete="current-password" required>
+      <button type="submit" class="btn" id="gateBtn">Unlock</button>
+    </form>
+    <div class="note bad" id="gateNote"></div>
+  </div>
+</div>
+
+<header id="topBar" hidden>
+  <div class="wrap">
+    <div class="eyebrow mono">The Legendary Festival</div>
+    <h1>Festival Desk</h1>
+    <div class="sub">December 5, 2026 &middot; 10:00 AM&ndash;8:00 PM</div>
+  </div>
+</header>
+
+<main id="dash">
+  <div class="wrap">
+
+    <section>
+      <div class="head">
+        <h2>Who&rsquo;s coming</h2>
+        <button class="act mono" id="refreshBtn" type="button">Refresh</button>
+      </div>
+      <div class="rule"></div>
+
+      <div class="figures">
+        <div class="fig lead">
+          <div class="n" id="statAttending">&mdash;</div>
+          <div class="k">People attending</div>
+        </div>
+        <div class="fig">
+          <div class="n" id="statRegistrations">&mdash;</div>
+          <div class="k">Registrations</div>
+        </div>
+        <div class="fig">
+          <div class="n" id="statLargest">&mdash;</div>
+          <div class="k">Largest party</div>
+        </div>
+      </div>
+
+      <div class="hall">
+        <div class="seats" id="seats"></div>
+        <div class="empty" id="seatsEmpty">No one has registered yet.</div>
+        <div class="cap mono" id="seatsCap" hidden></div>
+      </div>
+      <div class="note bad" id="statsNote"></div>
+    </section>
+
+    <section>
+      <div class="head"><h2>Write to everyone</h2></div>
+      <div class="rule"></div>
+
+      <form id="blastForm">
+        <div class="field">
+          <label for="subject">Subject</label>
+          <input type="text" id="subject" required maxlength="150">
+        </div>
+        <div class="field">
+          <label for="message">Message</label>
+          <textarea id="message" required placeholder="Parking is behind the hall, and doors open at 9:30."></textarea>
+          <div class="hint">Sent from your Gmail, one message per person &mdash; nobody sees anyone else&rsquo;s address.</div>
+        </div>
+        <div class="send-row">
+          <button type="submit" class="btn btn-send" id="blastBtn">Review before sending</button>
+          <span class="hint" id="blastCount"></span>
+        </div>
+      </form>
+
+      <div class="confirm" id="confirmBox">
+        <p id="confirmText"></p>
+        <div class="row">
+          <button class="btn btn-send" id="confirmSend" type="button">Send now</button>
+          <button class="btn btn-quiet" id="cancelSend" type="button">Go back</button>
+        </div>
+      </div>
+      <div class="note" id="blastNote"></div>
+    </section>
+
+  </div>
+  <footer><div class="wrap mono">Registrations are kept in the festival spreadsheet.</div></footer>
+</main>
+
+<script>
+const KEY_STORE = 'festival-admin-key';
+let adminKey = sessionStorage.getItem(KEY_STORE) || '';
+
+function headers(){ return { 'Content-Type':'application/json', 'X-Admin-Key': adminKey }; }
+
+function note(id, message, kind){
+  const box = document.getElementById(id);
+  box.textContent = message;
+  box.className = 'note ' + kind + (message ? ' show' : '');
+}
+
+async function unlock(key){
+  const res = await fetch('/api/admin/unlock', { method:'POST', headers:{ 'X-Admin-Key': key } });
+  return res.ok;
+}
+
+function showDashboard(){
+  document.getElementById('gate').hidden = true;
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('topBar').hidden = false;
+  document.getElementById('dash').classList.add('show');
+  loadStats();
+}
+
+function lockOut(){
+  sessionStorage.removeItem(KEY_STORE);
+  adminKey = '';
+  location.reload();
+}
+
+document.getElementById('gateForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('gateBtn');
+  const key = document.getElementById('key').value.trim();
+  btn.disabled = true; btn.textContent = 'Checking…';
+  try{
+    if(await unlock(key)){
+      adminKey = key;
+      sessionStorage.setItem(KEY_STORE, key);
+      showDashboard();
+    } else {
+      note('gateNote', 'That key does not match. Try again.', 'bad');
+      document.getElementById('key').select();
+    }
+  }catch(err){
+    note('gateNote', 'Could not reach the server. Is the app still running?', 'bad');
+  }
+  btn.disabled = false; btn.textContent = 'Unlock';
+});
+
+/** One arch per person, so the headcount reads as a hall filling up. */
+function drawSeats(count){
+  const seats = document.getElementById('seats');
+  const empty = document.getElementById('seatsEmpty');
+  const cap = document.getElementById('seatsCap');
+  seats.innerHTML = '';
+
+  if(count < 1){
+    empty.hidden = false;
+    cap.hidden = true;
+    return;
+  }
+  empty.hidden = true;
+  const shown = Math.min(count, 240);
+  for(let i = 0; i < shown; i++){
+    const seat = document.createElement('div');
+    seat.className = 'seat';
+    seat.style.animationDelay = Math.min(i * 8, 900) + 'ms';
+    seats.appendChild(seat);
+  }
+  cap.hidden = false;
+  cap.textContent = count > shown
+    ? shown + ' of ' + count + ' shown · one mark per person'
+    : 'One mark per person';
+}
+
+async function loadStats(){
+  note('statsNote', '', 'bad');
+  try{
+    const res = await fetch('/api/admin/stats', { headers: headers() });
+    if(res.status === 401){ lockOut(); return; }
+    if(!res.ok) throw new Error('status ' + res.status);
+    const stats = await res.json();
+    document.getElementById('statAttending').textContent = stats.attending;
+    document.getElementById('statRegistrations').textContent = stats.registrations;
+    document.getElementById('statLargest').textContent = stats.largestParty;
+    drawSeats(stats.attending);
+    document.getElementById('blastCount').textContent = stats.registrations === 1
+      ? 'Goes to 1 registrant'
+      : 'Goes to ' + stats.registrations + ' registrants';
+  }catch(err){
+    note('statsNote', 'Could not load the numbers from the spreadsheet. Try refreshing.', 'bad');
+  }
+}
+
+document.getElementById('refreshBtn').addEventListener('click', loadStats);
+
+document.getElementById('blastForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const subject = document.getElementById('subject').value.trim();
+  const message = document.getElementById('message').value.trim();
+  if(!subject || !message) return;
+
+  const who = (document.getElementById('blastCount').textContent || '').replace('Goes to ', '');
+  document.getElementById('confirmText').textContent =
+    'This sends “' + subject + '” to ' + (who || 'everyone registered') + '. It cannot be undone.';
+  document.getElementById('confirmBox').classList.add('show');
+  note('blastNote', '', 'bad');
+});
+
+document.getElementById('cancelSend').addEventListener('click', () => {
+  document.getElementById('confirmBox').classList.remove('show');
+});
+
+document.getElementById('confirmSend').addEventListener('click', async () => {
+  const btn = document.getElementById('confirmSend');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try{
+    const res = await fetch('/api/admin/email', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({
+        subject: document.getElementById('subject').value.trim(),
+        message: document.getElementById('message').value.trim()
+      })
+    });
+    if(res.status === 401){ lockOut(); return; }
+    const body = await res.json();
+    if(!res.ok){
+      note('blastNote', body.message || 'The message did not go out.', 'bad');
+    } else {
+      const left = body.remainingQuota >= 0 ? ' ' + body.remainingQuota + ' sends left today.' : '';
+      note('blastNote', 'Sent to ' + body.sent + (body.sent === 1 ? ' person.' : ' people.') + left, 'good');
+      document.getElementById('blastForm').reset();
+    }
+  }catch(err){
+    note('blastNote', 'Could not reach the server. Nothing was sent.', 'bad');
+  }
+  document.getElementById('confirmBox').classList.remove('show');
+  btn.disabled = false; btn.textContent = 'Send now';
+});
+
+// A key kept from earlier in this tab still has to be accepted by the server.
+if(adminKey){
+  unlock(adminKey).then(ok => { if(ok){ showDashboard(); } else { sessionStorage.removeItem(KEY_STORE); } });
+}
+</script>
+
+</body>
+</html>

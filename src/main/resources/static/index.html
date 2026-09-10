@@ -94,16 +94,6 @@
   input[type=text],input[type=email],input[type=tel],input[type=number],textarea{width:100%;padding:11px 12px;border:1px solid #d8c79a;border-radius:2px;background:#fffef9;font-family:'Work Sans',sans-serif;font-size:14.5px;color:var(--ink);}
   input:focus,textarea:focus,button:focus-visible{outline:2px solid var(--saffron-dark);outline-offset:1px;}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-  .type-choice{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-  .type-opt{border:1px solid #d8c79a;border-radius:3px;padding:14px;cursor:pointer;background:#fffef9;}
-  .type-opt.active{border-color:var(--vermillion);background:#fbf0e4;}
-  .type-opt .t{font-weight:600;font-size:14.5px;}
-  .type-opt .p{font-family:'Fraunces',serif;color:var(--vermillion);font-size:20px;margin-top:2px;}
-  .guests-field{display:none;}
-  .guests-field.show{display:block;}
-  .total-row{display:flex;justify-content:space-between;align-items:baseline;border-top:1px dashed #d8c79a;padding-top:16px;margin-top:6px;margin-bottom:20px;}
-  .total-row .tl{font-size:13px;text-transform:uppercase;color:var(--ink-soft);}
-  .total-row .tv{font-family:'Fraunces',serif;font-size:28px;color:var(--vermillion);font-weight:600;}
   .submit-btn{width:100%;padding:14px;font-size:15px;}
   .err{color:var(--vermillion);font-size:12.5px;margin-top:-10px;margin-bottom:14px;display:none;}
   .err.show{display:block;}
@@ -113,15 +103,6 @@
   .confirm .mark{width:46px;height:46px;border-radius:50%;background:var(--saffron);color:var(--white);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px;}
   .confirm h3{font-size:22px;font-style:italic;color:var(--indigo);margin-bottom:8px;}
   .confirm .rid{margin-top:16px;font-size:12px;color:var(--ink-soft);}
-  .pay-box{background:var(--parchment-2);border:1px dashed var(--gold);padding:16px;border-radius:3px;margin-top:20px;font-size:13.5px;text-align:left;color:var(--ink-soft);}
-  .pay-box b{color:var(--ink);}
-  .pay-links{display:flex;flex-direction:column;gap:8px;margin:14px 0;}
-  .pay-link{display:block;text-align:center;padding:11px;border-radius:3px;font-weight:600;font-size:14px;text-decoration:none;}
-  .pay-link.venmo{background:#3D95CE;color:#fff;}
-  .pay-link.paypal{background:#003087;color:#fff;}
-  .pay-link.zelle{background:#fff;border:1px solid #d8c79a;color:var(--ink-soft);font-weight:400;}
-  .pay-link.zelle b{color:var(--ink);}
-  .pay-note{font-size:11.5px;color:#9a8f7d;font-style:italic;}
 
   footer{background:var(--indigo-2);color:#9aa3c0;text-align:center;padding:26px 20px;font-size:12.5px;}
 
@@ -130,7 +111,6 @@
     .details-grid div{border-left:none;border-top:1px solid #dcccA0;padding-top:14px;}
     .details-grid div:first-child{border-top:none;padding-top:6px;}
     .row2{grid-template-columns:1fr;}
-    .type-choice{grid-template-columns:1fr;}
     .form-wrap{padding:22px;}
   }
   @media (prefers-reduced-motion: reduce){
@@ -271,32 +251,13 @@
         </div>
 
         <div class="field">
-          <label>Registering As</label>
-          <div class="type-choice">
-            <div class="type-opt active" id="opt-individual" data-type="individual" data-amt="20">
-              <div class="t">Individual</div>
-              <div class="p">$20</div>
-            </div>
-            <div class="type-opt" id="opt-family" data-type="family" data-amt="50">
-              <div class="t">Family</div>
-              <div class="p">$50</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="field guests-field" id="guestsField">
-          <label for="guestCount">Number in Family (for headcount &amp; prasādam planning)</label>
-          <input type="number" id="guestCount" min="2" value="2">
+          <label for="guestCount">Number Attending (for headcount &amp; prasādam planning)</label>
+          <input type="number" id="guestCount" min="1" value="1">
         </div>
 
         <div class="field">
           <label for="message">Note to Organizers (optional)</label>
           <textarea id="message" rows="2" placeholder="Dietary needs, volunteering interest, anything else"></textarea>
-        </div>
-
-        <div class="total-row">
-          <div class="tl mono">Donation Due</div>
-          <div class="tv" id="totalAmt">$20</div>
         </div>
 
         <div class="err" id="err-submit">Sorry — we couldn't save your registration. Please try again.</div>
@@ -307,19 +268,8 @@
     <div id="confirmStage" style="display:none;">
       <div class="confirm">
         <div class="mark">✓</div>
-        <h3>You're Registered</h3>
+        <h3 id="confirmHeading">You're Registered</h3>
         <p style="color:var(--ink-soft);font-size:14.5px;" id="confirmText"></p>
-
-        <div class="pay-box">
-          <b>Complete your donation of <span id="payAmt">$20</span>:</b> tap an option below, or pay at
-          the door on the day of the festival.
-          <div class="pay-links">
-            <a href="https://venmo.com/u/YourTempleVenmo" target="_blank" rel="noopener" class="pay-link venmo">Pay with Venmo</a>
-            <a href="https://paypal.me/YourTemplePayPal" target="_blank" rel="noopener" class="pay-link paypal">Pay with PayPal</a>
-            <div class="pay-link zelle">Zelle: <b>your-temple@email.org</b></div>
-          </div>
-          <div class="pay-note">These are placeholder links — swap in your temple's real Venmo, PayPal, and Zelle details before sharing this page.</div>
-        </div>
 
         <div class="rid mono" id="regId"></div>
         <div style="margin-top:22px;">
@@ -335,20 +285,6 @@
 </footer>
 
 <script>
-let currentType = 'individual';
-let currentAmt = 20;
-
-document.querySelectorAll('.type-opt').forEach(opt=>{
-  opt.addEventListener('click', ()=>{
-    document.querySelectorAll('.type-opt').forEach(o=>o.classList.remove('active'));
-    opt.classList.add('active');
-    currentType = opt.dataset.type;
-    currentAmt = parseInt(opt.dataset.amt,10);
-    document.getElementById('totalAmt').textContent = '$'+currentAmt;
-    document.getElementById('guestsField').classList.toggle('show', currentType==='family');
-  });
-});
-
 function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
 document.getElementById('regForm').addEventListener('submit', async (e)=>{
@@ -356,7 +292,7 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
   const fullName = document.getElementById('fullName').value.trim();
   const email = document.getElementById('email').value.trim();
   const phone = document.getElementById('phone').value.trim();
-  const guestCount = currentType==='family' ? (parseInt(document.getElementById('guestCount').value,10)||2) : 1;
+  const guestCount = parseInt(document.getElementById('guestCount').value,10) || 1;
   const message = document.getElementById('message').value.trim();
 
   let ok = true;
@@ -366,17 +302,14 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
   if(!validEmail(email)){ document.getElementById('err-email').classList.add('show'); ok=false; }
   if(!ok) return;
 
-  const entry = {
-    fullName, email, phone, type: currentType,
-    guestCount, amount: currentAmt, message
-  };
+  const entry = { fullName, email, phone, guestCount, message };
 
   const submitBtn = e.target.querySelector('.submit-btn');
   const submitLabel = submitBtn.textContent;
   submitBtn.textContent = 'Saving…';
   submitBtn.disabled = true;
 
-  let saved;
+  let saved, wasUpdate = false;
   try{
     const res = await fetch('/api/registrations', {
       method: 'POST',
@@ -384,6 +317,7 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
       body: JSON.stringify(entry)
     });
     if(!res.ok) throw new Error('Server responded ' + res.status);
+    wasUpdate = res.status === 200;   // 201 means a new registration, 200 an updated one
     saved = await res.json();
   }catch(err){
     console.error('Registration failed', err);
@@ -399,20 +333,18 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
 
   document.getElementById('formStage').style.display='none';
   document.getElementById('confirmStage').style.display='block';
-  document.getElementById('confirmText').textContent =
-    `Thank you, ${saved.fullName}. You're registered as ${saved.type==='family' ? 'a family of '+saved.guestCount : 'an individual'} — $${saved.amount} donation.`;
-  document.getElementById('payAmt').textContent = '$'+saved.amount;
+  const seats = saved.guestCount === 1 ? 'one seat' : saved.guestCount + ' seats';
+  document.getElementById('confirmHeading').textContent =
+    wasUpdate ? 'Registration Updated' : "You're Registered";
+  document.getElementById('confirmText').textContent = wasUpdate
+    ? `Thanks, ${saved.fullName}. We already had ${saved.email} on the list, so we've updated your details — you're down for ${seats}.`
+    : `Thank you, ${saved.fullName}. We have you down for ${seats}.`;
   document.getElementById('regId').textContent = 'Confirmation ID: ' + saved.regId;
   window.scrollTo({top: document.getElementById('confirmStage').offsetTop - 40, behavior: 'smooth'});
 });
 
 document.getElementById('newRegBtn').addEventListener('click', ()=>{
   document.getElementById('regForm').reset();
-  document.querySelectorAll('.type-opt').forEach(o=>o.classList.remove('active'));
-  document.getElementById('opt-individual').classList.add('active');
-  currentType='individual'; currentAmt=20;
-  document.getElementById('totalAmt').textContent='$20';
-  document.getElementById('guestsField').classList.remove('show');
   document.getElementById('confirmStage').style.display='none';
   document.getElementById('formStage').style.display='block';
   window.scrollTo({top: document.getElementById('register').offsetTop - 20, behavior:'smooth'});
