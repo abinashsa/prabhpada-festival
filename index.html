@@ -102,6 +102,10 @@
   .confirm{background:var(--white);border:1px solid #e6d8b3;border-radius:4px;padding:36px;text-align:center;max-width:640px;}
   .confirm .mark{width:46px;height:46px;border-radius:50%;background:var(--saffron);color:var(--white);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px;}
   .confirm h3{font-size:22px;font-style:italic;color:var(--indigo);margin-bottom:8px;}
+  .confirm .check-mail{margin:16px auto 0;max-width:430px;padding:11px 14px;border-radius:3px;
+                       font-size:14px;background:var(--parchment-2);border:1px solid #e2d3ab;color:var(--ink);}
+  .confirm .check-mail:empty{display:none;}
+  .confirm .check-mail.missed{background:#f7e3df;border-color:#dfb3ab;color:#7f2f26;}
   .confirm .rid{margin-top:16px;font-size:12px;color:var(--ink-soft);}
 
   footer{background:var(--indigo-2);color:#9aa3c0;text-align:center;padding:26px 20px;font-size:12.5px;}
@@ -271,6 +275,8 @@
         <h3 id="confirmHeading">You're Registered</h3>
         <p style="color:var(--ink-soft);font-size:14.5px;" id="confirmText"></p>
 
+        <div class="check-mail" id="checkMail"></div>
+
         <div class="rid mono" id="regId"></div>
         <div style="margin-top:22px;">
           <button class="btn btn-outline" id="newRegBtn" type="button">Register Someone Else</button>
@@ -348,12 +354,23 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
   document.getElementById('confirmText').textContent = wasUpdate
     ? `Thanks, ${saved.fullName}. We already had ${saved.email} on the list, so we've updated your details — you're down for ${seats}.`
     : `Thank you, ${saved.fullName}. We have you down for ${seats}.`;
+  const mail = document.getElementById('checkMail');
+  if(saved.emailed){
+    mail.className = 'check-mail';
+    mail.innerHTML = 'Check your email &mdash; we&rsquo;ve sent your confirmation to <b></b>.';
+    mail.querySelector('b').textContent = saved.email || email;
+  } else {
+    mail.className = 'check-mail missed';
+    mail.textContent = 'Your spot is saved, but we could not send the confirmation email. '
+      + 'Keep the confirmation ID below.';
+  }
   document.getElementById('regId').textContent = 'Confirmation ID: ' + saved.regId;
   window.scrollTo({top: document.getElementById('confirmStage').offsetTop - 40, behavior: 'smooth'});
 });
 
 document.getElementById('newRegBtn').addEventListener('click', ()=>{
   document.getElementById('regForm').reset();
+  document.getElementById('checkMail').textContent = '';   // not the next person's message
   document.getElementById('confirmStage').style.display='none';
   document.getElementById('formStage').style.display='block';
   window.scrollTo({top: document.getElementById('register').offsetTop - 20, behavior:'smooth'});

@@ -29,7 +29,7 @@ writes it, and the script runs as its owner.
 
 | Action | Needs a key? | What it does |
 | --- | --- | --- |
-| `register` | No | Adds or updates **one** row, returns only that row |
+| `register` | No | Adds or updates **one** row, emails that person their confirmation, returns only that row |
 | `list` | Yes | Returns every row — the roster |
 | `email` | Yes | Writes to every registrant, one message each |
 
@@ -41,6 +41,20 @@ cannot read the roster or send mail.
 never written into the page. A published key would let anyone who found the URL
 mail every registrant from the owner's Gmail, so the publish workflow fails if it
 finds one.
+
+## The confirmation email
+
+Everyone who registers gets an email with their confirmation ID and the date, and
+the page tells them to go and look for it. Re-registering sends an updated one.
+
+It is a receipt, not a verification step — nobody has to click anything, and the
+row is written before the mail is attempted. If sending fails (usually the daily
+quota) the registration still stands: the script reports `emailed: false` and the
+page says the spot is saved but no mail went out, rather than pointing someone at
+an inbox with nothing in it.
+
+Confirmations and blasts share one Gmail allowance, roughly 100 a day on a
+consumer account.
 
 ## Registering twice
 

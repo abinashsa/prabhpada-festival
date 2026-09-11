@@ -87,13 +87,66 @@ function register(sheet, request) {
       const submittedAt = rows[i][1];      // the original sign-up time is kept
       const row = [regId, submittedAt, fullName, email, phone, guestCount, message];
       sheet.getRange(FIRST_DATA_ROW + i, 1, 1, HEADER.length).setValues([row]);
-      return { regId: regId, fullName: fullName, guestCount: guestCount, updated: true };
+      return {
+        regId: regId, fullName: fullName, email: email, guestCount: guestCount, updated: true,
+        emailed: sendConfirmation(email, fullName, regId, guestCount, true)
+      };
     }
   }
 
   const regId = nextRegId(rows);
   sheet.appendRow([regId, now, fullName, email, phone, guestCount, message]);
-  return { regId: regId, fullName: fullName, guestCount: guestCount, updated: false };
+  return {
+    regId: regId, fullName: fullName, email: email, guestCount: guestCount, updated: false,
+    emailed: sendConfirmation(email, fullName, regId, guestCount, false)
+  };
+}
+
+/**
+ * Confirms one registration to the person who made it. The row is already saved
+ * by this point, so a mail failure must not fail the registration -- it reports
+ * false instead, and the page tells them their spot is safe but no mail went out.
+ */
+function sendConfirmation(address, fullName, regId, guestCount, updated) {
+  const people = guestCount === 1 ? '1 person' : guestCount + ' people';
+  const subject = updated
+    ? 'Your registration is updated - The Legendary Festival'
+    : "You're registered - The Legendary Festival";
+
+  const body =
+    'Hare Krishna ' + fullName + ',
+
+' +
+    (updated
+      ? 'We have updated your registration for The Legendary Festival, in honour of Srila Prabhupada.'
+      : 'You are registered for The Legendary Festival, in honour of Srila Prabhupada.') + '
+
+' +
+    '  Confirmation ID: ' + regId + '
+' +
+    '  When: Saturday, 5 December 2026, 10:00 AM to 8:00 PM
+' +
+    '  Attending: ' + people + '
+
+' +
+    'Registering again with this email address updates these details rather than
+' +
+    'adding a second booking.
+
+' +
+    'We look forward to having you with us.
+
+' +
+    'The Legendary Festival team';
+
+  try {
+    MailApp.sendEmail(address, subject, body);
+    return true;
+  } catch (err) {
+    // Usually the daily sending quota. Worth knowing, not worth failing over.
+    Logger.log('Could not confirm ' + regId + ' to ' + address + ': ' + err);
+    return false;
+  }
 }
 
 /** Continues the REG-0001 sequence past whatever the sheet already holds. */
