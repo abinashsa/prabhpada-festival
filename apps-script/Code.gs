@@ -16,6 +16,8 @@ const SECRET = 'CHANGE_ME_TO_A_LONG_RANDOM_STRING';
 // account - never in the published page, or anyone could mail your registrants.
 const ADMIN_KEY = 'CHANGE_ME_TO_THE_ADMIN_KEY';
 
+const NEWLINE = String.fromCharCode(10);
+
 const HEADER = ['Confirmation ID', 'Submitted At', 'Full Name', 'Email', 'Phone', 'Attending', 'Note'];
 const EMAIL_COLUMN = 4;   // 1-based: column D
 const FIRST_DATA_ROW = 2;
@@ -113,31 +115,26 @@ function sendConfirmation(address, fullName, regId, guestCount, updated) {
     ? 'Your registration is updated - The Legendary Festival'
     : "You're registered - The Legendary Festival";
 
-  const body =
-    'Hare Krishna ' + fullName + ',
-
-' +
-    (updated
+  // Built as lines and joined, so the text stays readable and there are no
+  // escape sequences to get mangled on the way into this file.
+  const body = [
+    'Hare Krishna ' + fullName + ',',
+    '',
+    updated
       ? 'We have updated your registration for The Legendary Festival, in honour of Srila Prabhupada.'
-      : 'You are registered for The Legendary Festival, in honour of Srila Prabhupada.') + '
-
-' +
-    '  Confirmation ID: ' + regId + '
-' +
-    '  When: Saturday, 5 December 2026, 10:00 AM to 8:00 PM
-' +
-    '  Attending: ' + people + '
-
-' +
-    'Registering again with this email address updates these details rather than
-' +
-    'adding a second booking.
-
-' +
-    'We look forward to having you with us.
-
-' +
-    'The Legendary Festival team';
+      : 'You are registered for The Legendary Festival, in honour of Srila Prabhupada.',
+    '',
+    '  Confirmation ID: ' + regId,
+    '  When: Saturday, 5 December 2026, 10:00 AM to 8:00 PM',
+    '  Attending: ' + people,
+    '',
+    'Registering again with this email address updates these details rather than',
+    'adding a second booking.',
+    '',
+    'We look forward to having you with us.',
+    '',
+    'The Legendary Festival team'
+  ].join(NEWLINE);
 
   try {
     MailApp.sendEmail(address, subject, body);
