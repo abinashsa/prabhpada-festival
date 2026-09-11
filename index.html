@@ -348,23 +348,32 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
 
   document.getElementById('formStage').style.display='none';
   document.getElementById('confirmStage').style.display='block';
-  const seats = saved.guestCount === 1 ? 'one seat' : saved.guestCount + ' seats';
+  /*
+   * Take from the script only what only it knows - the confirmation id, whether a
+   * row was replaced, whether mail went out. Everything else we already have from
+   * the form, so an older deployment that omits a field cannot print "undefined".
+   */
+  const who = fullName.split(/\s+/)[0] || fullName;
+  const seats = guestCount === 1 ? 'one seat' : guestCount + ' seats';
+
   document.getElementById('confirmHeading').textContent =
     wasUpdate ? 'Registration Updated' : "You're Registered";
   document.getElementById('confirmText').textContent = wasUpdate
-    ? `Thanks, ${saved.fullName}. We already had ${saved.email} on the list, so we've updated your details — you're down for ${seats}.`
-    : `Thank you, ${saved.fullName}. We have you down for ${seats}.`;
+    ? `Thanks, ${who}. ${email} was already registered, so we've updated your details — ${seats} now.`
+    : `Thank you, ${who}. We have you down for ${seats}.`;
+
   const mail = document.getElementById('checkMail');
   if(saved.emailed){
     mail.className = 'check-mail';
     mail.innerHTML = 'Check your email &mdash; we&rsquo;ve sent your confirmation to <b></b>.';
-    mail.querySelector('b').textContent = saved.email || email;
+    mail.querySelector('b').textContent = email;
   } else {
     mail.className = 'check-mail missed';
     mail.textContent = 'Your spot is saved, but we could not send the confirmation email. '
       + 'Keep the confirmation ID below.';
   }
-  document.getElementById('regId').textContent = 'Confirmation ID: ' + saved.regId;
+  const rid = document.getElementById('regId');
+  rid.textContent = saved.regId ? 'Confirmation ID: ' + saved.regId : '';
   window.scrollTo({top: document.getElementById('confirmStage').offsetTop - 40, behavior: 'smooth'});
 });
 
