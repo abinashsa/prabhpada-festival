@@ -53,6 +53,49 @@
   .btn-outline{background:transparent;border:1px solid var(--gold);color:var(--gold);}
   .btn-outline:hover{background:rgba(190,154,75,.12);color:var(--gold);}
 
+  /* LEGENDARY GUESTS */
+  .guests{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:24px;}
+  .guest{perspective:1100px;background:none;border:none;padding:0;text-align:left;font:inherit;cursor:pointer;}
+  .guest-inner{position:relative;width:100%;aspect-ratio:3/4;transform-style:preserve-3d;
+               transition:transform .55s cubic-bezier(.4,.2,.2,1);}
+  .guest.flipped .guest-inner{transform:rotateY(180deg);}
+  .guest-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:4px;overflow:hidden;
+              border:1px solid #d8c79a;display:flex;flex-direction:column;}
+
+  .guest-front{background:var(--indigo);}
+  .guest-photo{flex:1;background-size:cover;background-position:center 22%;background-color:var(--indigo-2);
+               position:relative;display:flex;align-items:center;justify-content:center;}
+  /* Until a real portrait exists, an initials medallion rather than a broken frame. */
+  .guest-initials{font-family:'Fraunces',serif;font-size:38px;font-style:italic;color:var(--gold);
+                  width:82px;height:82px;border:1.5px solid rgba(190,154,75,.5);border-radius:50%;
+                  display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.15);}
+  .guest-photo::after{content:"";position:absolute;inset:0;
+                      background:linear-gradient(180deg,rgba(20,29,56,0) 45%,rgba(20,29,56,.92) 100%);}
+  .guest-name{position:relative;z-index:1;padding:12px 13px 13px;background:var(--indigo);color:var(--white);}
+  .guest-name .n{font-family:'Fraunces',serif;font-size:16px;line-height:1.2;}
+  .guest-name .a{font-size:11.5px;color:#b9c0dc;margin-top:3px;}
+  .badge{display:inline-block;margin-top:8px;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+         padding:3px 8px;border-radius:2px;background:var(--saffron);color:var(--indigo-2);font-weight:600;}
+  .badge.soon{background:transparent;border:1px solid var(--gold);color:var(--gold);}
+
+  .guest-back{background:var(--parchment-2);transform:rotateY(180deg);padding:18px 16px;
+              justify-content:center;overflow-y:auto;}
+  .guest-back .n{font-family:'Fraunces',serif;font-size:15.5px;margin-bottom:8px;color:var(--ink);}
+  .guest-back p{margin:0;font-size:13px;line-height:1.55;color:var(--ink-soft);}
+  .guest-hint{margin-top:12px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--saffron-dark);}
+  .guest:focus-visible{outline:2px solid var(--saffron);outline-offset:4px;border-radius:5px;}
+
+  .guest.tba{cursor:default;}
+  .guest.tba .guest-front{background:#efe3c8;border-style:dashed;}
+  .guest.tba .guest-photo{background-color:transparent;}
+  .guest.tba .guest-photo::after{display:none;}
+  .guest.tba .guest-initials{color:var(--gold);border-color:rgba(190,154,75,.45);background:transparent;font-size:30px;}
+  .guest.tba .guest-name{background:transparent;color:var(--ink);}
+  .guest.tba .guest-name .a{color:var(--ink-soft);}
+
+  @media (prefers-reduced-motion:reduce){.guest-inner{transition:none;}}
+  @media (max-width:720px){.guests{grid-template-columns:repeat(2,1fr);gap:14px;}}
+  @media (max-width:420px){.guests{grid-template-columns:1fr;}}
   /* DETAILS STRIP */
   .details{background:var(--parchment-2);border-bottom:1px solid #e2d3ab;}
   .details-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;text-align:center;padding:26px 0;}
@@ -74,11 +117,6 @@
   .quote-block p{font-family:'Fraunces',serif;font-style:italic;font-size:20px;color:var(--indigo);margin:0 0 8px;line-height:1.45;}
   .quote-block cite{font-family:'IBM Plex Mono',monospace;font-style:normal;font-size:12px;color:var(--vermillion);letter-spacing:.03em;}
 
-  .prabhupada-slot{max-width:640px;margin-top:22px;border:1.5px dashed var(--gold);border-radius:4px;background:linear-gradient(135deg,#fbf5e6,#f3e7c9);padding:26px;}
-  .slot-inner{display:flex;gap:16px;align-items:flex-start;}
-  .slot-icon{font-size:22px;color:var(--saffron-dark);line-height:1;}
-  .slot-text{font-size:13.5px;color:var(--ink-soft);}
-  .slot-text b{color:var(--ink);}
 
   /* PRICING */
   .pricing{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:640px;margin-top:8px;}
@@ -192,16 +230,19 @@
       it's confirmed. Register now to hold your place — no need to wait on the address.
     </div>
 
-    <div class="prabhupada-slot" id="prabhupadaSlot">
-      <div class="slot-inner">
-        <div class="slot-icon">☀</div>
-        <div class="slot-text">
-          <b>Srila Prabhupada's photo goes here.</b><br>
-          Swap this placeholder for a temple-approved portrait whenever you have one — upload it and it
-          drops straight in.
-        </div>
-      </div>
-    </div>
+  </div>
+</div>
+
+<div class="section" id="guests">
+  <div class="container">
+    <h2>Legendary Guests</h2>
+    <div class="rule"></div>
+    <p style="max-width:620px;color:var(--ink-soft);font-size:15px;margin-bottom:4px;">
+      The devotees leading kirtan and speaking through the day. Tap any portrait to read more — more
+      names are being confirmed and will appear here as they are.
+    </p>
+
+    <div class="guests" id="guestGrid"></div>
   </div>
 </div>
 
@@ -289,6 +330,113 @@
 <footer>
   The Legendary Festival &middot; In Honor of Srila Prabhupada &middot; December 5, 2026 &middot; 10:00 AM–8:00 PM
 </footer>
+
+<script>
+/*
+ * One entry per guest. To add someone, copy a block and fill it in; to show a
+ * portrait, drop the file into images/ and point "photo" at it. Until then the
+ * card shows an initials medallion rather than a broken frame, so an unfinished
+ * line-up still looks deliberate.
+ */
+const GUESTS = [
+  {
+    name: 'Balabhadra Bhattacharya das',
+    affiliation: 'ISKCON Atlanta',
+    status: 'confirmed',
+    photo: 'images/balabhadra-bhattacharya-das.jpg',
+    bio: 'A disciple of Srila Prabhupada, who gave him his name in Chicago in 1974. '
+       + 'He joined the Atlanta temple in 1973 and went on to serve it for four decades, '
+       + 'twenty of those years as temple president. He has long carried the holy name '
+       + 'into kirtan programs across the community.'
+  },
+  {
+    name: 'Vishnu gada Das',
+    affiliation: 'ISKCON',
+    status: 'confirmed',
+    photo: 'images/vishnu-gada-das.jpg',
+    bio: ''
+  }
+];
+
+/* Cards held open for names not yet announced. Remove one each time a guest is added. */
+const PLACEHOLDERS = 2;
+
+function initials(name){
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0] || '')[0] || '' ).toUpperCase() + ((parts[1] || '')[0] || '').toUpperCase();
+}
+
+function guestCard(guest){
+  const card = document.createElement('button');
+  card.type = 'button';
+  card.className = 'guest';
+  card.setAttribute('aria-expanded', 'false');
+
+  const bio = guest.bio
+    ? `<p>${guest.bio}</p>`
+    : '<p>A short introduction will be added here shortly.</p>';
+
+  card.innerHTML =
+    '<div class="guest-inner">' +
+      '<div class="guest-face guest-front">' +
+        `<div class="guest-photo"><span class="guest-initials">${initials(guest.name)}</span></div>` +
+        '<div class="guest-name"><div class="n"></div><div class="a"></div>' +
+          '<span class="badge">Confirmed</span></div>' +
+      '</div>' +
+      '<div class="guest-face guest-back"><div class="n"></div>' + bio +
+        '<div class="guest-hint">Tap to close</div></div>' +
+    '</div>';
+
+  // Names are set as text, never as markup, so a guest's name cannot inject HTML.
+  card.querySelector('.guest-front .n').textContent = guest.name;
+  card.querySelector('.guest-front .a').textContent = guest.affiliation;
+  card.querySelector('.guest-back .n').textContent = guest.name;
+
+  /*
+   * Show the portrait only once it has actually loaded. A name added before its
+   * photo file exists keeps the medallion instead of an empty frame, so the grid
+   * never looks broken mid-way through confirming the line-up.
+   */
+  if(guest.photo){
+    const probe = new Image();
+    probe.onload = () => {
+      const frame = card.querySelector('.guest-photo');
+      frame.style.backgroundImage = `url('${guest.photo}')`;
+      const medallion = frame.querySelector('.guest-initials');
+      if(medallion) medallion.remove();
+    };
+    probe.src = guest.photo;
+  }
+
+  card.addEventListener('click', () => {
+    const open = card.classList.toggle('flipped');
+    card.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  return card;
+}
+
+function placeholderCard(){
+  const card = document.createElement('div');
+  card.className = 'guest tba';
+  card.innerHTML =
+    '<div class="guest-inner">' +
+      '<div class="guest-face guest-front">' +
+        '<div class="guest-photo"><span class="guest-initials">✹</span></div>' +
+        '<div class="guest-name"><div class="n">To be announced</div>' +
+          '<div class="a">Invitation in progress</div>' +
+          '<span class="badge soon">Soon</span></div>' +
+      '</div>' +
+    '</div>';
+  return card;
+}
+
+(function renderGuests(){
+  const grid = document.getElementById('guestGrid');
+  if(!grid) return;
+  GUESTS.forEach(g => grid.appendChild(guestCard(g)));
+  for(let i = 0; i < PLACEHOLDERS; i++) grid.appendChild(placeholderCard());
+})();
+</script>
 
 <script>
 /*

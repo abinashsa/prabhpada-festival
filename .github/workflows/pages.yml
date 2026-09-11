@@ -11,6 +11,7 @@ on:
     paths:
       - index.html
       - admin.html
+      - images/**
       - .github/workflows/pages.yml
   workflow_dispatch:
 
@@ -36,7 +37,13 @@ jobs:
         run: |
           mkdir -p _site
           cp index.html admin.html _site/
-          ls -la _site/
+          # Guest portraits, if any have been added yet. The README in there is
+          # instructions for us, not part of the site.
+          if [ -d images ]; then
+            mkdir -p _site/images
+            find images -type f ! -name 'README.md' -exec cp {} _site/images/ \;
+          fi
+          ls -laR _site/
 
       - name: Refuse to publish a page carrying a key
         run: |
