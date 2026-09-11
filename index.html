@@ -38,8 +38,14 @@
     color:var(--white);position:relative;overflow:hidden;padding:64px 0 56px;
   }
   .hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:6px;background:linear-gradient(90deg,var(--saffron),var(--gold),var(--saffron));}
-  .art-credit{position:absolute;bottom:12px;right:16px;font-size:9.5px;color:rgba(216,220,237,.55);letter-spacing:.02em;}
+  .footer-credit{margin-top:6px;font-size:10px;color:#6d759a;}
   .arch-wrap{display:flex;justify-content:center;margin-bottom:8px;}
+  .prabhupada-portrait{width:104px;height:104px;border-radius:50%;overflow:hidden;margin:0 auto 20px;
+    border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;
+    background:rgba(0,0,0,.18);}
+  .prabhupada-portrait img{width:100%;height:100%;object-fit:cover;display:block;}
+  .prabhupada-portrait .portrait-fallback{display:none;font-size:42px;line-height:1;}
+  .prabhupada-portrait.img-missing .portrait-fallback{display:block;}
   .eyebrow{text-align:center;font-size:12.5px;text-transform:uppercase;color:var(--gold);margin-bottom:14px;}
   .hero h1{text-align:center;font-size:clamp(34px,6vw,58px);font-style:italic;font-weight:600;color:var(--white);}
   .hero .sub{text-align:center;max-width:520px;margin:14px auto 0;color:#d8dced;font-size:16px;}
@@ -164,6 +170,11 @@
 
 <div class="hero">
   <div class="container">
+    <div class="prabhupada-portrait" id="prabhupadaPortrait">
+      <img src="images/srila-prabhupada.jpg" alt="Srila Prabhupada"
+           onerror="this.style.display='none'; this.parentElement.classList.add('img-missing');">
+      <div class="portrait-fallback">🪷</div>
+    </div>
     <div class="eyebrow mono">You're Warmly Invited</div>
     <h1>The Legendary Festival</h1>
     <p class="sub">A joyous day of kirtan, remembrance, and prasādam — honoring the life and mission of Srila Prabhupada, the Founder-Ācārya of ISKCON. All devotees, families, and friends near and far are warmly welcome — come as you are.</p>
@@ -179,10 +190,9 @@
     </div>
 
     <div class="hero-cta">
-      <a href="#register" class="btn">Join Us — Register Now</a>
+      <a href="#register" class="btn">Share Your Intent to Attend</a>
     </div>
   </div>
-  <div class="art-credit">Radha &amp; Krishna, Kota, India, ca. 1720 &middot; The Met, Public Domain</div>
 </div>
 
 <div class="details">
@@ -198,7 +208,7 @@
       </div>
       <div>
         <div class="label mono">Location</div>
-        <div class="value" id="venueValue">To be announced</div>
+        <div class="value" id="venueValue">In the vicinity of West Chester (exact address to follow)</div>
       </div>
     </div>
   </div>
@@ -225,9 +235,17 @@
       curious and stepping in for the very first time, there's a place set for you here.
     </p>
 
+    <p style="max-width:640px;color:var(--ink-soft);font-size:15.5px;">
+      This year brings a special blessing: several of Srila Prabhupada's own disciples, along with
+      senior Vaishnavas from our wider community, are being invited to join us. Their presence — in
+      kirtan, in class, and simply in association — is a rare and precious gift, and a big part of why
+      we hope you'll make it a point to be there.
+    </p>
+
     <div class="note-card">
-      The venue is being finalized and will be posted here and emailed to everyone registered as soon as
-      it's confirmed. Register now to hold your place — no need to wait on the address.
+      We're finalizing a venue in the vicinity of West Chester; the exact address will be posted here
+      and emailed to everyone who has shared their intent to attend, as soon as it's confirmed. Let us
+      know you're coming now — no need to wait on the address.
     </div>
 
   </div>
@@ -238,8 +256,9 @@
     <h2>Legendary Guests</h2>
     <div class="rule"></div>
     <p style="max-width:620px;color:var(--ink-soft);font-size:15px;margin-bottom:4px;">
-      The devotees leading kirtan and speaking through the day. Tap any portrait to read more — more
-      names are being confirmed and will appear here as they are.
+      The devotees leading kirtan and speaking through the day. We're inviting a number of Srila
+      Prabhupada's disciples and senior Vaishnavas to join us — tap any portrait to read more, and
+      watch this space as more names are confirmed.
     </p>
 
     <div class="guests" id="guestGrid"></div>
@@ -269,10 +288,14 @@
 
 <div class="section" id="register">
   <div class="container">
-    <h2>Save Your Spot</h2>
+    <h2>Intent to Attend</h2>
     <div class="rule"></div>
-    <p style="max-width:600px;color:var(--ink-soft);font-size:15px;margin-bottom:22px;">
-      We'd love to have you with us. Fill this out and you're in — it only takes a minute.
+    <p style="max-width:600px;color:var(--ink-soft);font-size:15px;margin-bottom:8px;">
+      This isn't a ticket — sharing your intent to attend simply gives us an approximate headcount, so
+      we can arrange a hall of the right size and plan enough prasādam. It only takes a minute.
+    </p>
+    <p style="max-width:600px;color:var(--vermillion);font-size:14px;font-weight:500;margin-bottom:22px;">
+      Please respond by Saturday, November 21, 2026.
     </p>
 
     <div id="formStage">
@@ -305,30 +328,45 @@
           <textarea id="message" rows="2" placeholder="Dietary needs, volunteering interest, anything else"></textarea>
         </div>
 
-        <div class="err" id="err-submit">Sorry — we couldn't save your registration. Please try again.</div>
-        <button type="submit" class="btn submit-btn">Confirm Registration</button>
+        <div class="err" id="err-submit">Sorry — we couldn't save your response. Please try again.</div>
+        <button type="submit" class="btn submit-btn">Submit Intent to Attend</button>
       </form>
     </div>
 
     <div id="confirmStage" style="display:none;">
       <div class="confirm">
         <div class="mark">✓</div>
-        <h3 id="confirmHeading">You're Registered</h3>
+        <h3 id="confirmHeading">You're Confirmed</h3>
         <p style="color:var(--ink-soft);font-size:14.5px;" id="confirmText"></p>
 
         <div class="check-mail" id="checkMail"></div>
 
         <div class="rid mono" id="regId"></div>
         <div style="margin-top:22px;">
-          <button class="btn btn-outline" id="newRegBtn" type="button">Register Someone Else</button>
+          <button class="btn btn-outline" id="newRegBtn" type="button">Add Someone Else</button>
         </div>
       </div>
     </div>
   </div>
 </div>
 
+<div class="section" style="padding-top:0;">
+  <div class="container">
+    <h2>Questions?</h2>
+    <div class="rule"></div>
+    <p style="max-width:560px;color:var(--ink-soft);font-size:15px;">
+      Happy to help with anything — venue, prasādam, volunteering, or general information.
+    </p>
+    <p class="mono" style="font-size:14px;color:var(--ink);line-height:1.9;">
+      [Name] — [Add phone number]<br>
+      [Name] — [Add phone number]
+    </p>
+  </div>
+</div>
+
 <footer>
   The Legendary Festival &middot; In Honor of Srila Prabhupada &middot; December 5, 2026 &middot; 10:00 AM–8:00 PM
+  <div class="footer-credit">Hero artwork: Radha &amp; Krishna, The Met &middot; public domain</div>
 </footer>
 
 <script>
@@ -340,8 +378,8 @@
  */
 const GUESTS = [
   {
-    name: 'Balabhadra Bhattacharya das',
-    affiliation: 'ISKCON Atlanta',
+    name: 'HG Balabhadra Dāsa',
+    affiliation: '',
     status: 'confirmed',
     photo: 'images/balabhadra-bhattacharya-das.jpg',
     bio: 'A disciple of Srila Prabhupada, who gave him his name in Chicago in 1974. '
@@ -350,16 +388,20 @@ const GUESTS = [
        + 'into kirtan programs across the community.'
   },
   {
-    name: 'Vishnu gada Das',
-    affiliation: 'ISKCON',
+    name: 'HG Visnugada Dāsa',
+    affiliation: '',
     status: 'confirmed',
     photo: 'images/vishnu-gada-das.jpg',
     bio: ''
   }
 ];
 
-/* Cards held open for names not yet announced. Remove one each time a guest is added. */
-const PLACEHOLDERS = 2;
+/*
+ * Cards held open for senior Vaishnavas/disciples being invited but not yet
+ * confirmed by name. Remove one each time a guest is added above. Raised to 4
+ * so the line-up visually reflects the scale of who's being invited.
+ */
+const PLACEHOLDERS = 4;
 
 function initials(name){
   const parts = name.trim().split(/\s+/);
@@ -422,9 +464,9 @@ function placeholderCard(){
     '<div class="guest-inner">' +
       '<div class="guest-face guest-front">' +
         '<div class="guest-photo"><span class="guest-initials">✹</span></div>' +
-        '<div class="guest-name"><div class="n">To be announced</div>' +
+        '<div class="guest-name"><div class="n">Name to be confirmed</div>' +
           '<div class="a">Invitation in progress</div>' +
-          '<span class="badge soon">Soon</span></div>' +
+          '<span class="badge soon">To Be Confirmed</span></div>' +
       '</div>' +
     '</div>';
   return card;
@@ -505,9 +547,9 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
   const seats = guestCount === 1 ? 'one seat' : guestCount + ' seats';
 
   document.getElementById('confirmHeading').textContent =
-    wasUpdate ? 'Registration Updated' : "You're Registered";
+    wasUpdate ? 'Response Updated' : "You're Confirmed";
   document.getElementById('confirmText').textContent = wasUpdate
-    ? `Thanks, ${who}. ${email} was already registered, so we've updated your details — ${seats} now.`
+    ? `Thanks, ${who}. ${email} had already shared their intent to attend, so we've updated your details — ${seats} now.`
     : `Thank you, ${who}. We have you down for ${seats}.`;
 
   const mail = document.getElementById('checkMail');
