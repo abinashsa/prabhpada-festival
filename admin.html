@@ -202,15 +202,11 @@ const KEY_STORE = 'festival-admin-key';
 let adminKey = sessionStorage.getItem(KEY_STORE) || '';
 
 /*
- * Served by the Spring app these stay as they are, and the key is checked in Java.
- * The GitHub Pages build rewrites them to talk to the Apps Script web app instead.
- * The key is never written into this file: you type it, and it is held for the tab
- * only. Baking it in would let anyone who finds this page mail every registrant.
+ * The Apps Script web app bound to the registrations sheet. The key is never
+ * written into this file: you type it, and it is held for this tab only. Baking
+ * it in would let anyone who finds this page mail every registrant.
  */
-const ADMIN_URL = '/api/admin';
-const ADMIN_DIRECT = false;
-
-function headers(){ return { 'Content-Type':'application/json', 'X-Admin-Key': adminKey }; }
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbylNaD8QbAvcWqJ_-OTArDmIzInHSsOU8Z4duqraa6pa6KkrY3boMiyqrLMlPwfCphX/exec';
 
 /** Marks the errors that mean "your key was refused", so the page can re-lock. */
 function refused(message){
@@ -221,7 +217,7 @@ function refused(message){
 
 /** One POST to the script, carrying whatever key the organizer typed. */
 async function callScript(payload, key){
-  const res = await fetch(ADMIN_URL, {
+  const res = await fetch(SCRIPT_URL, {
     method: 'POST',
     // text/plain avoids a CORS preflight, which the Apps Script web app cannot answer.
     headers: {'Content-Type': 'text/plain;charset=utf-8'},
@@ -253,41 +249,23 @@ function note(id, message, kind){
   box.className = 'note ' + kind + (message ? ' show' : '');
 }
 
+/** Reading the roster is itself the key check - a wrong key is refused. */
 async function unlock(key){
-  if(ADMIN_DIRECT){
-    try{
-      await callScript({action: 'list'}, key);   // the roster read is the key check
-      return true;
-    }catch(err){
-      if(err.unauthorized) return false;
-      throw err;
-    }
+  try{
+    await callScript({action: 'list'}, key);
+    return true;
+  }catch(err){
+    if(err.unauthorized) return false;
+    throw err;
   }
-  const res = await fetch(ADMIN_URL + '/unlock', { method:'POST', headers:{ 'X-Admin-Key': key } });
-  return res.ok;
 }
 
 async function fetchStats(){
-  if(ADMIN_DIRECT){
-    return statsFromRows((await callScript({action: 'list'})).rows);
-  }
-  const res = await fetch(ADMIN_URL + '/stats', { headers: headers() });
-  if(res.status === 401) throw refused('unauthorized');
-  if(!res.ok) throw new Error('status ' + res.status);
-  return res.json();
+  return statsFromRows((await callScript({action: 'list'})).rows);
 }
 
 async function sendBlast(subject, message){
-  if(ADMIN_DIRECT){
-    return callScript({action: 'email', subject: subject, body: message});
-  }
-  const res = await fetch(ADMIN_URL + '/email', {
-    method: 'POST', headers: headers(), body: JSON.stringify({subject, message})
-  });
-  if(res.status === 401) throw refused('unauthorized');
-  const body = await res.json();
-  if(!res.ok) throw new Error(body.message || 'The message did not go out.');
-  return body;
+  return callScript({action: 'email', subject: subject, body: message});
 }
 
 function showDashboard(){

@@ -286,12 +286,11 @@
 
 <script>
 /*
- * Where the form sends registrations. Served by the Spring app these stay as they
- * are; the GitHub Pages build rewrites them to post straight to the Apps Script
- * web app, which accepts the write-only "register" action without a secret.
+ * The Apps Script web app bound to the registrations sheet. It accepts the
+ * write-only "register" action, which adds or updates one row and returns just
+ * that row -- so this page needs no secret and is safe to publish.
  */
-const REGISTER_URL = '/api/registrations';
-const REGISTER_DIRECT = false;
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbylNaD8QbAvcWqJ_-OTArDmIzInHSsOU8Z4duqraa6pa6KkrY3boMiyqrLMlPwfCphX/exec';
 
 function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
@@ -320,16 +319,15 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
   let saved, wasUpdate = false;
   try{
     // text/plain avoids a CORS preflight, which the Apps Script web app cannot answer.
-    const res = await fetch(REGISTER_URL, {
+    const res = await fetch(SCRIPT_URL, {
       method: 'POST',
-      headers: {'Content-Type': REGISTER_DIRECT ? 'text/plain;charset=utf-8' : 'application/json'},
-      body: JSON.stringify(REGISTER_DIRECT ? Object.assign({action: 'register'}, entry) : entry)
+      headers: {'Content-Type': 'text/plain;charset=utf-8'},
+      body: JSON.stringify(Object.assign({action: 'register'}, entry))
     });
-    if(!res.ok) throw new Error('Server responded ' + res.status);
+    if(!res.ok) throw new Error('The script responded ' + res.status);
     saved = await res.json();
     if(saved.error) throw new Error(saved.error);
-    // Posting directly, the script says so; through the app, 201 is new and 200 an update.
-    wasUpdate = REGISTER_DIRECT ? !!saved.updated : res.status === 200;
+    wasUpdate = !!saved.updated;   // the script says whether it replaced a row
   }catch(err){
     console.error('Registration failed', err);
     submitBtn.textContent = submitLabel;

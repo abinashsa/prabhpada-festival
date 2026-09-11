@@ -1,12 +1,6 @@
-target/
 .idea/
 *.iml
-.mvn/
-!.mvn/wrapper/maven-wrapper.properties
 
-# Google service-account keys — never commit these
-*service-account*.json
-*credentials*.json
-secrets/
-application-local.properties
+# Real secrets - never committed
 apps-script/Code.local.gs
+local-secrets.txt

@@ -1,16 +1,16 @@
-name: Publish festival page
+name: Publish festival pages
 
-# Publishes the registration page and the organizer desk to GitHub Pages, both
-# pointed at the Apps Script web app. Neither carries a key: the desk asks for one
-# and holds it for the tab only. A key baked into the page would let anyone who
-# found the URL read the roster and mail every registrant.
+# Publishes the two pages to GitHub Pages. There is no build: they are plain HTML
+# and call the Apps Script web app directly. Keeping this workflow (rather than
+# Pages' own branch mode) means Jekyll never runs, so the README is never served
+# as the homepage, and the key check below always gets a chance to run.
 
 on:
   push:
     branches: [main]
     paths:
-      - src/main/resources/static/index.html
-      - src/main/resources/static/admin.html
+      - index.html
+      - admin.html
       - .github/workflows/pages.yml
   workflow_dispatch:
 
@@ -24,79 +24,31 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Point both pages at the Apps Script web app
-        env:
-          # Accepted from either tab of Settings > Secrets and variables, because
-          # which one it was added to is an easy and invisible thing to get wrong.
-          APPS_SCRIPT_URL: ${{ vars.APPS_SCRIPT_URL || secrets.APPS_SCRIPT_URL }}
-        run: |
-          if [ -z "$APPS_SCRIPT_URL" ]; then
-            echo "::error::APPS_SCRIPT_URL is empty. Add it under Settings > Secrets and variables > Actions, on either the Variables or the Secrets tab, as the Apps Script /exec URL."
-            exit 1
-          fi
-          case "$APPS_SCRIPT_URL" in
-            https://script.google.com/macros/s/*/exec) ;;
-            *) echo "::error::APPS_SCRIPT_URL should look like https://script.google.com/macros/s/<id>/exec - got: $APPS_SCRIPT_URL"; exit 1 ;;
-          esac
-
-          mkdir -p _site
-          cp src/main/resources/static/index.html _site/index.html
-          cp src/main/resources/static/admin.html _site/admin.html
-
-          # Swap the constants so each published page talks to the script directly.
-          python3 - "$APPS_SCRIPT_URL" <<'PY'
-          import io, sys
-          url = sys.argv[1]
-
-          swaps = {
-              '_site/index.html': [
-                  ("const REGISTER_URL = '/api/registrations';", "const REGISTER_URL = '%s';" % url),
-                  ("const REGISTER_DIRECT = false;", "const REGISTER_DIRECT = true;"),
-              ],
-              '_site/admin.html': [
-                  ("const ADMIN_URL = '/api/admin';", "const ADMIN_URL = '%s';" % url),
-                  ("const ADMIN_DIRECT = false;", "const ADMIN_DIRECT = true;"),
-              ],
-          }
-
-          for path, pairs in swaps.items():
-              page = io.open(path, encoding='utf-8').read()
-              for old, new in pairs:
-                  if old not in page:
-                      sys.exit('%s no longer contains: %s' % (path, old))
-                  page = page.replace(old, new, 1)
-              io.open(path, 'w', encoding='utf-8').write(page)
-              print(path, 'will talk to', url)
-          PY
-
-      - name: Refuse to publish a page carrying a key
-        run: |
-          # These pages are world-readable. The desk must ask for the key, never hold
-          # one: a published key would let a stranger mail every registrant.
-          if grep -nE "adminKey: *['\"][^'\"]|const (ADMIN_KEY|SECRET) *=|webhook-secret" _site/*.html; then
-            echo "::error::A key or secret is baked into a page about to be published"; exit 1
-          fi
-          for page in _site/index.html _site/admin.html; do
-            test -f "$page" || { echo "::error::$page missing"; exit 1; }
-          done
-          ls -la _site/
-
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
-
-  deploy:
-    needs: build
+  publish:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Gather the pages
+        run: |
+          mkdir -p _site
+          cp index.html admin.html _site/
+          ls -la _site/
+
+      - name: Refuse to publish a page carrying a key
+        run: |
+          # These pages are world-readable. The desk must ask for the key, never
+          # hold one: a published key would let a stranger mail every registrant.
+          if grep -nE "adminKey: *['\"][^'\"]|const (ADMIN_KEY|SECRET) *=" _site/*.html; then
+            echo "::error::A key or secret is baked into a page about to be published"; exit 1
+          fi
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4

@@ -1,175 +1,96 @@
 # The Legendary Festival
 
-A Spring Boot web app for the festival page in honor of Srila Prabhupada.
-The festival page is the application's start page — `GET /` serves it.
+Registration site for the festival in honour of Srila Prabhupada —
+**Saturday, December 5, 2026, 10:00 AM–8:00 PM**.
 
-## Running
+Two HTML pages and one Google Apps Script. No server, no build, no dependencies.
 
-Requires JDK 21 and Maven.
+- **Registration** — https://abinashsa.github.io/prabhpada-festival/
+- **Organizer desk** — https://abinashsa.github.io/prabhpada-festival/admin.html
 
-```
-mvn spring-boot:run
-```
-
-Then open http://localhost:8080 — the festival page loads at the root.
-
-Build a runnable jar instead:
+## How it works
 
 ```
-mvn clean package
-java -jar target/legendary-festival-0.0.1-SNAPSHOT.jar
+index.html  ──┐
+              ├── POST ──▶  Apps Script web app  ──▶  Google Sheet
+admin.html  ──┘              (runs as the sheet's owner)
 ```
 
-## Layout
-
-| Path | What it holds |
+| File | What it is |
 | --- | --- |
-| `src/main/resources/static/index.html` | The festival page, served as the welcome page at `/` |
-| `src/main/java/com/prabhupada/festival/` | Application, registration API, in-memory store, Sheets publisher |
-| `src/test/java/com/prabhupada/festival/` | Tests, run over a real HTTP port |
+| `index.html` | The public registration form |
+| `admin.html` | Headcount and the email blast, behind a key you type |
+| `apps-script/Code.gs` | The script bound to the sheet — the only thing that touches it |
 
-## Registration API
+The sheet is **private**: never shared, never published. Only the script reads or
+writes it, and the script runs as its owner.
 
-The page's "Save Your Spot" form posts to the backend, and the server assigns the
-confirmation id. The form collects name, email, phone, headcount and a note.
+## The three actions
 
-Email is the unique key: submitting the same address again updates that
-registration instead of creating a second one, and the confirmation screen says so.
+| Action | Needs a key? | What it does |
+| --- | --- | --- |
+| `register` | No | Adds or updates **one** row, returns only that row |
+| `list` | Yes | Returns every row — the roster |
+| `email` | Yes | Writes to every registrant, one message each |
 
-The registration tier ("Registering As") and the donation total were removed from
-the form for now, so the API no longer takes `type` or `amount`. The standalone
-"Suggested Donation" section further up the page still shows the $20 / $50 figures.
+`register` needs no key on purpose: that is what makes publishing the form safe.
+The worst a stranger can do is add a junk row — delete it in the sheet. They
+cannot read the roster or send mail.
 
-| Endpoint | Purpose |
-| --- | --- |
-| `POST /api/registrations` | Submit a registration. `201` for a new one, `200` when an existing email was updated |
-| `GET /api/registrations/{regId}` | Look up one registration |
-| `GET /api/registrations` | List all registrations |
+`admin.html` **asks** for the key and keeps it for that browser tab only. It is
+never written into the page. A published key would let anyone who found the URL
+mail every registrant from the owner's Gmail, so the publish workflow fails if it
+finds one.
 
-```
-curl -X POST http://localhost:8080/api/registrations \
-  -H 'Content-Type: application/json' \
-  -d '{"fullName":"Radha D","email":"radha@example.org","guestCount":4}'
-```
+## Registering twice
 
-## Google Sheets
+Email is the identity. Registering again with an address already on the list
+updates that row — same confirmation id, same original sign-up time, new details —
+rather than adding a second row. Addresses are matched ignoring case and spacing,
+so `Radha@Example.org ` and `radha@example.org` are one person.
 
-Registrations are written to a Google Sheet, **one row per email address**:
+## Editing the sheet by hand
 
-| Confirmation ID | Submitted At | Full Name | Email | Phone | Attending | Note |
-|---|---|---|---|---|---|---|
+Go ahead. The desk reads the sheet live, so hand-added rows are counted and hand-
+edited ones are respected. Keep the columns in order: Confirmation ID, Submitted
+At, Full Name, Email, Phone, Attending, Note.
 
-Email is the identity. If someone registers again with an address already in the
-sheet, that row is updated in place — same confirmation id, same original sign-up
-time, new details — rather than a second row being added. Addresses are matched
-ignoring case and surrounding spaces, so `Radha@Example.org ` and
-`radha@example.org` are one person. On startup the app reads the sheet back in, so
-a restart keeps ids stable instead of reissuing ones already in use.
+## Changing the pages
 
-### Route A — Apps Script web app (no credentials)
+Edit `index.html` or `admin.html` and push to `main`. The workflow in
+`.github/workflows/pages.yml` publishes them; there is nothing to build. Open
+either file directly in a browser to try a change before pushing — they talk to
+the live script from `file://` too.
 
-The same spirit as the sponsor board's published-CSV trick, but able to *write*
-and without making the sheet public. A script bound to the sheet runs as you and
-accepts rows over one URL.
+## Changing how registration behaves
 
-1. Open the sheet → *Extensions* → *Apps Script*.
-2. Paste in `apps-script/Code.gs` and set `SECRET` to a long random string.
-   (`apps-script/Code.local.gs` is the same file with this project's secret
-   already filled in — it is gitignored.)
-3. *Deploy* → *New deployment* → **Web app**, "Execute as: **Me**",
-   "Who has access: **Anyone**". Copy the `/exec` URL.
-4. Put the URL and the matching secret in `application-local.properties`:
+That lives in `apps-script/Code.gs`, not in the pages. To deploy a change:
 
-```
-festival.sheets.webhook-url=https://script.google.com/macros/s/…/exec
-festival.sheets.webhook-secret=<the same string as SECRET>
-mvn spring-boot:run -Dspring-boot.run.profiles=local
-```
+1. Open the sheet → *Extensions* → *Apps Script*
+2. Paste in `apps-script/Code.local.gs` (same file, real secrets) and **save**
+3. *Deploy* → *Manage deployments* → pencil → **Version: New version** → *Deploy*
 
-"Anyone" means anyone with the URL can reach the script, not that the sheet is
-readable — the script only appends and updates rows, and rejects any request
-without the secret. The spreadsheet itself is never shared or published.
+The committed `Code.gs` carries placeholders. The real `SECRET` and `ADMIN_KEY`
+live in `Code.local.gs` and `local-secrets.txt`, both gitignored.
 
-### Route B — Sheets API (service account or gcloud)
+**Setting it up from scratch:** create the script bound to the sheet, set `SECRET`
+and `ADMIN_KEY`, deploy as a **Web app** with *Execute as: **Me*** and *Who has
+access: **Anyone***, then put that `/exec` URL into `SCRIPT_URL` at the top of the
+script block in both pages. Run `authorizeMail` once from the editor to approve
+sending mail — updating code never re-asks for permissions.
 
-It is **off by default**, so the app runs without credentials — it logs a warning
-per registration and keeps them in memory only. To turn it on:
+## Gotchas worth knowing
 
-1. **Create the sheet.** A new Google Sheet. The header row and the tab are sorted
-   out on first startup: the app uses a tab named `Registrations` if there is one,
-   otherwise the first tab (a new sheet's `Sheet1`). The id is the long string in
-   the URL: `docs.google.com/spreadsheets/d/`**`<SPREADSHEET_ID>`**`/edit`.
-2. **Create a service account.** In the [Google Cloud console](https://console.cloud.google.com):
-   pick or create a project → *APIs & Services* → enable the **Google Sheets API**
-   → *Credentials* → *Create credentials* → *Service account*. Then open the
-   account → *Keys* → *Add key* → *Create new key* → **JSON**, and save the file
-   somewhere outside this repo.
-3. **Share the sheet with it.** Copy the service account's email (it ends in
-   `.iam.gserviceaccount.com`) and share the sheet with that address as an
-   **Editor**. This is the step people miss — without it every write is a 403.
-4. **Point the app at both:**
+- `curl -L` cannot test the script. A POST to `/exec` answers 302 to a content
+  URL that must be fetched with GET; curl re-posts and gets `411`. Use Python or
+  a browser.
+- Pages must stay on **Source: GitHub Actions**. On "Deploy from a branch" Jekyll
+  renders `README.md` as the homepage instead of the form.
+- Mail is capped near 100 recipients a day on a consumer Gmail account. The desk
+  reports what is left after each send.
 
-```
-export FESTIVAL_SHEETS_ENABLED=true
-export FESTIVAL_SHEETS_SPREADSHEET_ID=<the id from step 1>
-export FESTIVAL_SHEETS_CREDENTIALS_PATH=/path/to/service-account.json
-mvn spring-boot:run
-```
+## Sending a message to everyone
 
-Or put the same settings in `src/main/resources/application-local.properties`
-(gitignored) and run with `-Dspring-boot.run.profiles=local`.
-
-`FESTIVAL_SHEETS_TAB` overrides the tab name. If `..._CREDENTIALS_PATH` is left
-unset, Application Default Credentials are used instead (`GOOGLE_APPLICATION_CREDENTIALS`,
-or `gcloud auth application-default login`).
-
-The key file is a live credential for that sheet: keep it out of the repo — the
-`.gitignore` covers `*service-account*.json` and `*credentials*.json` — and off
-any machine you don't control.
-
-**If the sheet write fails**, the API returns `503` and the page shows its error
-message rather than confirming. A registration is only confirmed once it is
-actually in the sheet, so nothing is lost silently; the registrant retries.
-
-## Publishing the registration page
-
-`.github/workflows/pages.yml` publishes `index.html` and `admin.html` to GitHub
-Pages on each push to `main`, rewriting both to talk to the Apps Script web app.
-
-**Neither page carries a key.** The registration page calls the script's
-`register` action, which only writes one row and returns that row — it cannot
-read the roster or send mail. The organizer desk asks for the key, keeps it for
-that browser tab only, and sends it with each request; the script checks it
-against `ADMIN_KEY`, which lives in your Google account and nowhere else.
-
-A key written into `admin.html` would let anyone who found the URL read every
-registrant's details and send mail from your Gmail to all of them, so the build
-fails if it finds one.
-
-To switch it on:
-
-1. Deploy the current `apps-script/Code.local.gs` (it adds `register` and `ADMIN_KEY`).
-2. *Settings* → *Secrets and variables* → *Actions* → *Variables* → add
-   **`APPS_SCRIPT_URL`** with the `/exec` URL.
-3. *Settings* → *Pages* → *Source*: **GitHub Actions**.
-4. Push to `main`.
-
-**What a public form means:** anyone can submit a registration, as with any
-sign-up page that has no login. They cannot read what others submitted. If junk
-rows appear, delete them in the sheet — and remember the roster is still only
-readable by you.
-
-## Before going live
-
-- **Turn the Google Sheet on** (above). Until then registrations live only in
-  memory and are lost on restart.
-- `GET /api/registrations` exposes every registrant's name, email and phone with
-  no authentication. Put it behind a login, or remove it.
-- Payment collection is gone from the confirmation screen along with the donation
-  total; the old Venmo / PayPal / Zelle links were placeholders anyway.
-
-## Tests
-
-```
-mvn test
-```
+Open the desk, enter the key, write a subject and message, then *Review before
+sending*. It shows who it reaches and that it cannot be undone. Each person is
+written to separately — nobody sees anyone else's address.
