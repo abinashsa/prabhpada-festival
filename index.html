@@ -658,7 +658,7 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
       + 'Keep the confirmation ID below.';
   }
   const rid = document.getElementById('regId');
-  rid.textContent = saved.regId ? 'Confirmation ID: ' + saved.regId : '';
+  rid.textContent = saved.confirmationId ? 'Confirmation ID: ' + saved.confirmationId : '';
   window.scrollTo({top: document.getElementById('confirmStage').offsetTop - 40, behavior: 'smooth'});
 });
 
