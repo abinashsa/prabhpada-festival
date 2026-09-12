@@ -52,8 +52,8 @@
   </div>
   <div id="dash" class="hidden">
     <div class="topbar">
-      <h1 style="text-align:left;margin:0">Festival Dashboard</h1>
-      <small><a href="#" onclick="forget();return false" style="color:#8a7a5f">Forget this device</a></small>
+      <h1 style="text-align:left;margin:0">Legendary Dashboard</h1>
+
     </div>
     <div class="card stats" id="stats"></div>
     <div class="tabs">
@@ -103,7 +103,7 @@ async function unlock(){
   document.getElementById('dash').classList.remove('hidden');
   load();
 }
-function forget(){ try{ localStorage.removeItem('lf_key'); }catch(e){} location.reload(); }
+
 async function load(){   try {     var r = await fetch(BASE + '?page=admindata', {headers:{'X-Admin-Key': KEY}});     var j = await r.json();     if(!j.ok){ document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Error: ' + esc(j.error || 'Could not load.') + '</div>'; return; }     var s = j.summary;     document.getElementById('stats').innerHTML =       stat(money(s.donations),'Donations (' + s.donationCount + ')') +       stat(s.attendees,'Attendees (' + s.registrations + ' registrations)') +       stat(money(s.expenses),'Expenses') +       stat(money(s.donations - s.expenses),'Net');     document.getElementById('tab-reg').innerHTML = regTable(j.registrations);     document.getElementById('tab-don').innerHTML = donTable(j.donations);     document.getElementById('expTable').innerHTML = expTable(j.expenses);   } catch(e) {     document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Connection error: ' + esc(e.message) + '</div>';   } }
 function stat(v,l){ return '<div class="stat card"><div class="v">'+v+'</div><div class="l">'+l+'</div></div>'; }
 function regTable(rows){
