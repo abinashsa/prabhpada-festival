@@ -1,128 +1,166 @@
 <!DOCTYPE html>
-<html><head>
-<meta charset=utf-8>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<title>Admin — The Legendary Festival</title>
-<meta name=robots content=noindex>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Legendary Festival — Admin</title>
 <style>
-body{margin:0;background:#0f1529;color:#e9e4d4;font-family:Georgia,serif;line-height:1.4}
-.w{max-width:900px;margin:auto;padding:28px 14px 40px}
-h1{font-style:italic;color:#f7eedb;font-size:24px;margin:6px 0}
-h2{font-style:italic;color:#BE9A4B;font-size:18px;margin:24px 0 8px}
-.s{color:#9aa3c0;font-size:13px}
-.p{background:#1c2547;border:1px solid #55452a;border-radius:5px;padding:18px}
-.g{max-width:380px;margin:auto}
-label{font-size:13px;color:#9aa3c0}
-input,textarea{width:100%;padding:8px;margin:2px 0 8px;background:#121a36;border:1px solid #3a4570;color:#fff;border-radius:3px;box-sizing:border-box}
-input[type=file]{padding:4px}
-button{background:#E38B29;border:0;border-radius:3px;padding:9px 20px;font-weight:700;cursor:pointer}
-button.h{background:none;border:1px solid #BE9A4B;color:#BE9A4B;font-weight:400;font-size:12px;padding:5px 10px}
-button.danger{background:none;border:1px solid #a05050;color:#e08080;font-weight:400;font-size:12px;padding:4px 8px}
-.e{color:#e08080;font-size:14px}.ok{color:#9fd6a4;font-size:14px}
-.st{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.c{background:#1c2547;border:1px solid #55452a;border-radius:5px;padding:10px;font-size:12px;color:#9aa3c0}
-.v{font-size:22px;color:#BE9A4B}
-table{width:100%;border-collapse:collapse;font-size:13px}
-td,th{padding:6px 8px;border-bottom:1px solid #55452a;text-align:left;vertical-align:top}
-a{color:#BE9A4B}
-</style></head><body><div class=w>
-<div id=a class="p g"><h1>Admin</h1>
-<p class=s>This area is private. Enter the admin key to continue.</p>
-<form id=gf><label>Admin key<input type=password id=k autocomplete=off autocapitalize=off autocorrect=off spellcheck=false></label>
-<label><input type=checkbox id=rm style=width:auto> Remember on this device</label>
-<p><button>Continue</button></p><p class=e id=ge hidden></p></form></div>
-<div id=d hidden><h1>Dashboard</h1>
-<p><button class=h id=fg>Forget this device</button></p>
-<div class=st><div class=c>Total donations<div class=v id=sD>—</div></div><div class=c>Number of donations<div class=v id=sN>—</div></div><div class=c>Confirmed attendees<div class=v id=sA>—</div></div><div class=c>Total expenses<div class=v id=sE>—</div></div></div>
-<h2>Recent donations</h2><table><tr><th>Date<th>Name<th>Amount<tbody id=dB></table>
-<h2>Recent registrations</h2><table><tr><th>Date<th>Name<th>Email<th>Guests<tbody id=rB></table>
-<h2>Expenses (<span id=eT>—</span>)</h2><table><tr><th>Date<th>Vendor<th>Description<th>Amount<th>Receipt<th><tbody id=eB></table>
-<h2>Add expense</h2><div class=p><form id=ef>
-<label>Date<input type=date id=xD required></label>
-<label>Vendor<input id=xV></label>
-<label>Description<input id=xI required></label>
-<label>Amount<input type=number id=xA min=0 step=.01 required></label>
-<label>Reference<input id=xR placeholder="Order / policy number"></label>
-<label>Receipt file<input type=file id=xF accept="image/*,.pdf"></label>
-<p><button id=xB>Add expense</button></p><p id=xM hidden></p>
-</form></div></div></div>
+  :root { --gold:#c9a227; --ink:#3a2f26; --bg:#faf6ef; --card:#fffdf8; }
+  * { box-sizing:border-box; }
+  body { font-family:Georgia,serif; background:var(--bg); color:var(--ink); margin:0; padding:20px; }
+  .wrap { max-width:1000px; margin:0 auto; }
+  h1 { text-align:center; color:var(--ink); margin:6px 0 2px; }
+  .sub { text-align:center; color:#8a7a5f; margin-bottom:18px; font-style:italic; }
+  .card { background:var(--card); border:1px solid #e8dcc3; border-radius:10px; padding:16px; margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,.05); }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; }
+  .stat { text-align:center; padding:12px; }
+  .stat .v { font-size:26px; color:var(--gold); font-weight:bold; }
+  .stat .l { font-size:13px; color:#8a7a5f; }
+  .tabs { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+  .tab { padding:8px 18px; border:1px solid #e8dcc3; background:var(--card); border-radius:20px; cursor:pointer; font-family:Georgia,serif; font-size:15px; }
+  .tab.active { background:var(--gold); color:#fff; border-color:var(--gold); }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid #eee3cc; vertical-align:top; }
+  th { color:#8a7a5f; font-weight:normal; font-style:italic; }
+  input, select, textarea { font-family:Georgia,serif; font-size:15px; padding:8px; border:1px solid #d9cba8; border-radius:6px; width:100%; }
+  button { font-family:Georgia,serif; font-size:15px; padding:9px 20px; border-radius:8px; border:1px solid var(--gold); background:var(--gold); color:#fff; cursor:pointer; }
+  button.ghost { background:transparent; color:var(--ink); }
+  button.danger { background:#b3402e; border-color:#b3402e; padding:4px 10px; font-size:13px; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+  @media (max-width:640px){ .row{grid-template-columns:1fr;} }
+  #gate { max-width:420px; margin:60px auto; text-align:center; }
+  #gate input { text-align:center; margin:12px 0; }
+  .hidden { display:none !important; }
+  .err { color:#b3402e; margin-top:8px; }
+  .okmsg { color:#2e7d32; margin-top:8px; }
+  a.rcpt { color:var(--gold); }
+  .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .topbar small { color:#8a7a5f; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="gate" class="card">
+    <h1>The Legendary Festival</h1>
+    <div class="sub">Admin — enter the key</div>
+    <input type="password" id="key" placeholder="Admin key" autocomplete="off">
+    <label style="font-size:14px;color:#8a7a5f"><input type="checkbox" id="remember" style="width:auto"> Remember this device</label><br><br>
+    <button onclick="unlock()">Open dashboard</button>
+    <div id="gateErr" class="err"></div>
+  </div>
+  <div id="dash" class="hidden">
+    <div class="topbar">
+      <h1 style="text-align:left;margin:0">Festival Dashboard</h1>
+      <small><a href="#" onclick="forget();return false" style="color:#8a7a5f">Forget this device</a></small>
+    </div>
+    <div class="card stats" id="stats"></div>
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('reg',this)">Registrations</button>
+      <button class="tab" onclick="showTab('don',this)">Donations</button>
+      <button class="tab" onclick="showTab('exp',this)">Expenses</button>
+    </div>
+    <div class="card" id="tab-reg"></div>
+    <div class="card hidden" id="tab-don"></div>
+    <div class="card hidden" id="tab-exp">
+      <h3 style="margin-top:0">Add expense</h3>
+      <form id="expForm">
+        <div class="row">
+          <input name="date" type="date" required>
+          <input name="vendor" placeholder="Vendor" required>
+        </div>
+        <div class="row">
+          <input name="description" placeholder="Description" required>
+          <input name="amount" type="number" step="0.01" min="0" placeholder="Amount (USD)" required>
+        </div>
+        <div class="row">
+          <input name="reference" placeholder="Reference (order/policy #)">
+          <input name="receipt" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp">
+        </div>
+        <button type="submit">Save expense</button>
+        <span id="expMsg" style="margin-left:10px"></span>
+      </form>
+      <hr style="border:none;border-top:1px solid #eee3cc;margin:16px 0">
+      <div id="expTable"></div>
+    </div>
+  </div>
+</div>
 <script>
-var E='https://festival-api.abinash-a-sahoo.workers.dev/',K='lf_admin_key',k='';
-function g(i){return document.getElementById(i)}
-function m(n){var w=parseFloat(n);return isNaN(w)?'—':'$'+w.toFixed(2)}
-function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-function dt(s){if(!s)return '—';var d=new Date(s);return isNaN(d)?esc(String(s).slice(0,10)):d.toLocaleDateString()}
-function v(t){g('d').hidden=1;g('a').hidden=0;g('k').value='';var e=g('ge');e.hidden=!t;e.textContent=t||''}
-function netErr(){v("Couldn't reach the server — try again later.")}
-function headers(){return {'Content-Type':'application/json','X-Admin-Key':k}}
+var KEY = '';
+var BASE = 'https://festival-api.abinash-a-sahoo.workers.dev/';
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function money(n){ return '$' + (parseFloat(n)||0).toFixed(2); }
+function fdate(s){ if(!s) return ''; try{ return new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }catch(e){ return s; } }
+async function unlock(){
+  var k = document.getElementById('key').value;
+  var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'adminkey', key:k})});
+  var j = await r.json();
+  if(!j.ok){ document.getElementById('gateErr').textContent = 'Wrong key — try again.'; return; }
+  KEY = k;
+  if(document.getElementById('remember').checked){ try{ localStorage.setItem('lf_key', k); }catch(e){} }
+  document.getElementById('gate').classList.add('hidden');
+  document.getElementById('dash').classList.remove('hidden');
+  load();
+}
+function forget(){ try{ localStorage.removeItem('lf_key'); }catch(e){} location.reload(); }
 async function load(){
-  var t;
-  try{
-    var r=await fetch(E+'?page=admindata',{headers:{'X-Admin-Key':k}});
-    t=await r.json();
-  }catch(e){netErr();return}
-  if(!t||!t.ok){k='';try{localStorage.removeItem(K)}catch(e){}v("That key didn't match. Try again.");return}
-  g('a').hidden=1;g('d').hidden=0;
-  var s=t.summary||{};
-  g('sD').textContent=m(s.donations);g('sN').textContent=s.donationCount||0;
-  g('sA').textContent=s.attendees||0;g('sE').textContent=m(s.expenses);g('eT').textContent=m(s.expenses);
-  g('dB').innerHTML=(t.donations||[]).slice(0,10).map(function(o){
-    return '<tr><td>'+dt(o.created_at)+'<td>'+esc(o.donor_name)+'<td>'+m(o.amount)}).join('');
-  g('rB').innerHTML=(t.registrations||[]).slice(0,10).map(function(o){
-    return '<tr><td>'+dt(o.created_at)+'<td>'+esc(o.full_name)+'<td>'+esc(o.email)+'<td>'+esc(o.guests)}).join('');
-  g('eB').innerHTML=(t.expenses||[]).map(function(o){
-    return '<tr><td>'+dt(o.date||o.created_at)+'<td>'+esc(o.vendor)+'<td>'+esc(o.description)+
-      '<td>'+m(o.amount)+'<td>'+(o.r2_key?'<a href="#" data-r="'+o.id+'">View</a>':'—')+
-      '<td><button class=danger data-del="'+o.id+'">Delete</button>'}).join('');
-  Array.prototype.forEach.call(document.querySelectorAll('[data-r]'),function(a){
-    a.onclick=function(e){e.preventDefault();viewReceipt(a.getAttribute('data-r'))}});
-  Array.prototype.forEach.call(document.querySelectorAll('[data-del]'),function(b){
-    b.onclick=function(){delExpense(b.getAttribute('data-del'))}});
+  var r = await fetch(BASE + '?page=admindata', {headers:{'X-Admin-Key': KEY}});
+  var j = await r.json();
+  if(!j.ok){ document.getElementById('gateErr').textContent = j.error || 'Could not load.'; return; }
+  var s = j.summary;
+  document.getElementById('stats').innerHTML = stat(money(s.donations),'Donations (' + s.donationCount + ')') + stat(s.attendees,'Attendees (' + s.registrations + ' registrations)') + stat(money(s.expenses),'Expenses') + stat(money(s.donations - s.expenses),'Net');
+  document.getElementById('tab-reg').innerHTML = regTable(j.registrations);
+  document.getElementById('tab-don').innerHTML = donTable(j.donations);
+  document.getElementById('expTable').innerHTML = expTable(j.expenses);
+}
+function stat(v,l){ return '<div class="stat card"><div class="v">'+v+'</div><div class="l">'+l+'</div></div>'; }
+function regTable(rows){
+  if(!rows.length) return '<p style="color:#8a7a5f">No registrations yet.</p>';
+  var h = '<table><tr><th>Date</th><th>Name</th><th>Email</th><th>Guests</th><th>Donated</th></tr>';
+  rows.forEach(function(r){ h += '<tr><td>'+fdate(r.created_at)+'</td><td>'+esc(r.full_name)+ (r.spiritual_name?' <i>('+esc(r.spiritual_name)+')</i>':'')+'</td><td>'+esc(r.email)+'</td><td>'+ r.guests+'</td><td>'+money(r.donation_total)+'</td></tr>'; });
+  return h + '</table>';
+}
+function donTable(rows){
+  if(!rows.length) return '<p style="color:#8a7a5f">No donations yet.</p>';
+  var h = '<table><tr><th>Date</th><th>Donor</th><th>Email</th><th>Amount</th><th>Matched</th><th>Receipt</th></tr>';
+  rows.forEach(function(r){ h += '<tr><td>'+fdate(r.created_at)+'</td><td>'+esc(r.donor_name)+'</td><td>'+esc(r.email)+ '</td><td>'+money(r.amount)+'</td><td>'+esc(r.matched)+'</td><td>'+esc(r.receipt_no)+'</td></tr>'; });
+  return h + '</table>';
+}
+function expTable(rows){
+  if(!rows.length) return '<p style="color:#8a7a5f">No expenses yet.</p>';
+  var h = '<table><tr><th>Date</th><th>Vendor</th><th>Description</th><th>Amount</th><th>Reference</th><th>Receipt</th><th></th></tr>';
+  rows.forEach(function(r){ var rc = r.r2_key ? '<button class="ghost" style="padding:4px 10px;font-size:13px" onclick="viewReceipt('+r.id+')">View</button>' : '—'; h += '<tr><td>'+esc(r.date||fdate(r.created_at))+'</td><td>'+esc(r.vendor)+'</td><td>'+esc(r.description)+ '</td><td>'+money(r.amount)+'</td><td>'+esc(r.reference)+'</td><td>'+rc+ '</td><td><button class="danger" onclick="delExp('+r.id+')">Delete</button></td></tr>'; });
+  return h + '</table>';
+}
+function showTab(name, el){
+  ['reg','don','exp'].forEach(function(t){ document.getElementById('tab-'+t).classList.add('hidden'); });
+  document.getElementById('tab-'+name).classList.remove('hidden');
+  document.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('active'); });
+  el.classList.add('active');
 }
 async function viewReceipt(id){
-  try{
-    var r=await fetch(E+'?page=receipt&id='+encodeURIComponent(id),{headers:{'X-Admin-Key':k}});
-    if(!r.ok)throw 0;
-    var blob=await r.blob();
-    window.open(URL.createObjectURL(blob),'_blank');
-  }catch(e){alert("Couldn't load the receipt.")}
+  var r = await fetch(BASE + '?page=receipt&id=' + id, {headers:{'X-Admin-Key': KEY}});
+  if(!r.ok){ alert('Could not open receipt.'); return; }
+  var b = await r.blob();
+  window.open(URL.createObjectURL(b), '_blank');
 }
-async function delExpense(id){
-  if(!confirm('Delete this expense?'))return;
-  try{
-    var r=await fetch(E,{method:'POST',headers:headers(),
-      body:JSON.stringify({action:'deleteexpense',id:id,key:k})});
-    var t=await r.json();
-    if(t&&t.ok)load();else alert('Could not delete: '+((t&&t.error)||'error'));
-  }catch(e){alert("Couldn't reach the server.")}
+async function delExp(id){
+  if(!confirm('Delete this expense?')) return;
+  var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'deleteexpense', id:id, key:KEY})});
+  var j = await r.json();
+  if(j.ok) load(); else alert(j.error || 'Delete failed.');
 }
-async function check(key,remember){
-  var t;
-  try{
-    var r=await fetch(E,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'adminkey',key:key})});
-    t=await r.json();
-  }catch(e){netErr();return}
-  if(t&&t.ok){k=key;if(remember){try{localStorage.setItem(K,key)}catch(e){}}load()}
-  else v("That key didn't match. Try again.");
-}
-g('gf').onsubmit=function(e){e.preventDefault();var key=g('k').value.trim();if(key)check(key,g('rm').checked);else v('Enter the admin key first.')};
-g('fg').onclick=function(){k='';try{localStorage.removeItem(K)}catch(e){}v()};
-g('ef').onsubmit=function(e){
+document.getElementById('expForm').addEventListener('submit', async function(e){
   e.preventDefault();
-  var mm=g('xM');mm.hidden=1;
-  var fd=new FormData();
-  fd.append('action','addexpense');fd.append('key',k);
-  fd.append('date',g('xD').value);fd.append('vendor',g('xV').value);
-  fd.append('description',g('xI').value);fd.append('amount',g('xA').value);
-  fd.append('reference',g('xR').value);
-  var f=g('xF').files[0];if(f)fd.append('receipt',f);
-  g('xB').disabled=true;
-  fetch(E,{method:'POST',headers:{'X-Admin-Key':k},body:fd}).then(function(r){return r.json()}).then(function(t){
-    g('xB').disabled=false;mm.hidden=0;
-    if(t&&t.ok){mm.className='ok';mm.textContent='Expense added.';g('ef').reset();load()}
-    else{mm.className='e';mm.textContent='Could not add: '+((t&&t.error)||'error')}
-  }).catch(function(){g('xB').disabled=false;mm.hidden=0;mm.className='e';mm.textContent="Couldn't reach the server — try again later."});
-};
-try{var sk=localStorage.getItem(K);if(sk)check(sk,1);else v()}catch(e){v()}
-</script></body></html>
+  var msg = document.getElementById('expMsg');
+  msg.textContent = 'Saving…'; msg.className = '';
+  var fd = new FormData(e.target);
+  fd.append('action','addexpense'); fd.append('key', KEY);
+  var r = await fetch(BASE, {method:'POST', body: fd});
+  var j = await r.json();
+  if(j.ok){ msg.textContent = 'Saved.'; msg.className='okmsg'; e.target.reset(); load(); }
+  else { msg.textContent = j.error || 'Save failed.'; msg.className='err'; }
+});
+(function(){ try{ var k = localStorage.getItem('lf_key'); if(k){ document.getElementById('key').value = k; unlock(); } }catch(e){} })();
+</script>
+</body>
+</html>
