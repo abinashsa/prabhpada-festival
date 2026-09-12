@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -142,7 +143,7 @@
   .seva-opt input[type=checkbox]{width:17px;height:17px;accent-color:var(--saffron-dark);flex:none;}
   .submit-btn{width:100%;padding:14px;font-size:15px;}
   .err{color:var(--vermillion);font-size:12.5px;margin-top:-10px;margin-bottom:14px;display:none;}
-  .err.show{display:block;}
+  .err.show{display:block;} .field-hint{font-size:12.5px;color:var(--ink-soft);margin-top:6px;}
 
   /* CONFIRMATION */
   .confirm{background:var(--white);border:1px solid #e6d8b3;border-radius:4px;padding:36px;text-align:center;max-width:640px;}
@@ -313,6 +314,7 @@
     <div class="donate-row zeffy" hidden>
       <a class="btn zeffy">Donate with Zeffy</a>
       <p class="donate-note">Secure online giving &mdash; Zeffy charges no fees, so 100% of your gift supports the festival.</p>
+      <p class="donate-note">If you've registered for the festival, please donate with the same email address you registered with &mdash; it helps us match your gift.</p>
       <p class="donate-note" style="margin-top:4px;">Many employers match charitable donations, doubling your gift. If your company has a matching program, please reach out to us and we&rsquo;ll help with the details.</p>
     </div>
   </div>
@@ -348,6 +350,7 @@
           <div class="field">
             <label for="email">Email</label>
             <input type="email" id="email" required>
+            <p class="field-hint">Please use the same email address for your donation, so we can match your gift to your registration.</p>
             <div class="err" id="err-email">Please enter a valid email.</div>
           </div>
           <div class="field">
@@ -421,6 +424,7 @@
 <footer>
   The Legendary Festival &middot; In Honor of Srila Prabhupada &middot; December 5, 2026 &middot; 10:00 AM–8:00 PM
   <div class="footer-credit">Hero artwork: Radha &amp; Krishna, The Met &middot; public domain</div>
+  <div class="footer-credit">Organized by The Legendary Team</div>
 </footer>
 
 <script>
