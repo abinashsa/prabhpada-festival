@@ -19,6 +19,7 @@
   .tabs { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
   .tab { padding:8px 18px; border:1px solid #e8dcc3; background:var(--card); border-radius:20px; cursor:pointer; font-family:Georgia,serif; font-size:15px; color:var(--ink); }
   .tab.active { background:var(--gold); color:#fff; border-color:var(--gold); }
+  .exportbtn { margin-left:auto; background:transparent; color:var(--ink); }
   #tab-reg, #tab-don, #tab-exp { overflow-x:auto; }
   #tab-reg table, #tab-don table, #tab-exp table { min-width:560px; }
   table { width:100%; border-collapse:collapse; font-size:14px; }
@@ -60,6 +61,7 @@
       <button class="tab active" onclick="showTab('reg',this)">Registrations</button>
       <button class="tab" onclick="showTab('don',this)">Donations</button>
       <button class="tab" onclick="showTab('exp',this)">Expenses</button>
+      <button class="exportbtn" onclick="exportCSV()">Export CSV</button>
     </div>
     <div class="card" id="tab-reg"></div>
     <div class="card hidden" id="tab-don"></div>
@@ -89,6 +91,7 @@
 <script>
 var KEY = '';
 var BASE = 'https://festival-api.abinash-a-sahoo.workers.dev/';
+var REG = [], DON = [], EXP = [];
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function money(n){ return '$' + (parseFloat(n)||0).toFixed(2); }
 function fdate(s){ if(!s) return ''; try{ return new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }catch(e){ return s; } }
@@ -104,7 +107,7 @@ async function unlock(){
   load();
 }
 
-async function load(){   try {     var r = await fetch(BASE + '?page=admindata', {headers:{'X-Admin-Key': KEY}});     var j = await r.json();     if(!j.ok){ document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Error: ' + esc(j.error || 'Could not load.') + '</div>'; return; }     var s = j.summary;     document.getElementById('stats').innerHTML =       stat(money(s.donations),'Donations (' + s.donationCount + ')') +       stat(s.attendees,'Attendees (' + s.registrations + ' registrations)') +       stat(money(s.expenses),'Expenses') +       stat(money(s.donations - s.expenses),'Net');     document.getElementById('tab-reg').innerHTML = regTable(j.registrations);     document.getElementById('tab-don').innerHTML = donTable(j.donations);     document.getElementById('expTable').innerHTML = expTable(j.expenses);   } catch(e) {     document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Connection error: ' + esc(e.message) + '</div>';   } }
+async function load(){   try {     var r = await fetch(BASE + '?page=admindata', {headers:{'X-Admin-Key': KEY}});     var j = await r.json();     if(!j.ok){ document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Error: ' + esc(j.error || 'Could not load.') + '</div>'; return; }     var s = j.summary;     REG = j.registrations || [];     DON = j.donations || [];     EXP = j.expenses || [];     document.getElementById('stats').innerHTML =       stat(money(s.donations),'Donations (' + s.donationCount + ')') +       stat(s.attendees,'Attendees (' + s.registrations + ' registrations)') +       stat(money(s.expenses),'Expenses') +       stat(money(s.donations - s.expenses),'Net');     document.getElementById('tab-reg').innerHTML = regTable(REG);     document.getElementById('tab-don').innerHTML = donTable(DON);     document.getElementById('expTable').innerHTML = expTable(EXP);   } catch(e) {     document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Connection error: ' + esc(e.message) + '</div>';   } }
 function stat(v,l){ return '<div class="stat card"><div class="v">'+v+'</div><div class="l">'+l+'</div></div>'; }
 function regTable(rows){
   if(!rows.length) return '<p style="color:#8a7a5f">No registrations yet.</p>';
@@ -132,6 +135,37 @@ function showTab(name, el){
   document.getElementById('tab-'+name).classList.remove('hidden');
   document.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('active'); });
   el.classList.add('active');
+}
+function activeTabName(){
+  var tabs = ['reg','don','exp'];
+  for(var i=0;i<tabs.length;i++){ if(!document.getElementById('tab-'+tabs[i]).classList.contains('hidden')) return tabs[i]; }
+  return 'reg';
+}
+function csvEsc(v){ v = (v==null?'':String(v)); return /["\n\r,]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v; }
+function downloadCSV(name, cols, rows){
+  var lines = ['\ufeff' + cols.map(csvEsc).join(',')];
+  rows.forEach(function(r){ lines.push(cols.map(function(c){ return csvEsc(r[c]); }).join(',')); });
+  var blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+}
+function exportCSV(){
+  var t = activeTabName();
+  var d = new Date();
+  var stamp = d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2);
+  var cfg = {
+    reg: { file:'registrations-'+stamp+'.csv', data:REG,
+      cols:['created_at','full_name','spiritual_name','email','phone','guests','seva','dietary','message','confirmation_id','donation_total'] },
+    don: { file:'donations-'+stamp+'.csv', data:DON,
+      cols:['created_at','donor_name','email','amount','matched','receipt_no'] },
+    exp: { file:'expenses-'+stamp+'.csv', data:EXP,
+      cols:['date','created_at','vendor','description','amount','reference'] }
+  }[t];
+  if(!cfg.data.length){ alert('Nothing to export.'); return; }
+  downloadCSV(cfg.file, cfg.cols, cfg.data);
 }
 async function viewReceipt(id){
   var r = await fetch(BASE + '?page=receipt&id=' + id, {headers:{'X-Admin-Key': KEY}});
