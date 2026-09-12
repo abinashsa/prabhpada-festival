@@ -115,6 +115,18 @@
   .section{padding:56px 0;}
   .section h2{font-size:26px;font-style:italic;font-weight:600;color:var(--indigo);margin-bottom:16px;}
   .rule{width:44px;height:2px;background:var(--saffron);margin-bottom:20px;}
+
+  /* MANTRA BAND */
+  .mantra-band{background:radial-gradient(ellipse 90% 130% at 50% -20%, #2b3763 0%, var(--indigo) 55%, var(--indigo-2) 100%);padding:70px 20px;text-align:center;}
+  .mantra-eyebrow{font-size:11.5px;letter-spacing:.34em;text-indent:.34em;text-transform:uppercase;color:var(--gold);margin:0 0 24px;}
+  .mantra{font-family:'Fraunces',serif;font-size:clamp(27px,5.2vw,46px);line-height:1.7;color:#F7EEDB;font-weight:500;margin:0;}
+  .mantra .m-line{display:block;}
+  .mantra-orn{display:flex;align-items:center;gap:16px;max-width:300px;margin:0 auto 26px;}
+  .mantra-orn::before,.mantra-orn::after{content:"";height:1px;flex:1;}
+  .mantra-orn::before{background:linear-gradient(90deg,transparent,var(--gold));}
+  .mantra-orn::after{background:linear-gradient(90deg,var(--gold),transparent);}
+  .mantra-orn span{color:var(--gold);font-size:17px;line-height:1;}
+  .mantra-band .mantra-orn:last-child{margin:30px auto 0;}
   .about p{max-width:640px;color:var(--ink-soft);font-size:15.5px;}
 
   /* SCHEDULE-ish note card */
@@ -224,6 +236,18 @@
       </div>
     </div>
   </div>
+</div>
+
+<div class="mantra-band">
+  <p class="mantra-eyebrow">The Mahā-Mantra</p>
+  <div class="mantra-orn"><span>❁</span></div>
+  <p class="mantra">
+    <span class="m-line">Hare Kṛṣṇa, Hare Kṛṣṇa</span>
+    <span class="m-line">Kṛṣṇa Kṛṣṇa, Hare Hare</span>
+    <span class="m-line">Hare Rāma, Hare Rāma</span>
+    <span class="m-line">Rāma Rāma, Hare Hare</span>
+  </p>
+  <div class="mantra-orn"><span>❁</span></div>
 </div>
 
 <div class="section about">
