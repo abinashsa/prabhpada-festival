@@ -115,8 +115,11 @@ async function load(){
 function stat(v,l){ return '<div class="stat card"><div class="v">'+v+'</div><div class="l">'+l+'</div></div>'; }
 function regTable(rows){
   if(!rows.length) return '<p style="color:#8a7a5f">No registrations yet.</p>';
-  var h = '<table><tr><th>Date</th><th>Name</th><th>Email</th><th>Guests</th><th>Donated</th></tr>';
-  rows.forEach(function(r){ h += '<tr><td>'+fdate(r.created_at)+'</td><td>'+esc(r.full_name)+ (r.spiritual_name?' <i>('+esc(r.spiritual_name)+')</i>':'')+'</td><td>'+esc(r.email)+'</td><td>'+ r.guests+'</td><td>'+money(r.donation_total)+'</td></tr>'; });
+  var h = '<table><tr><th>Date</th><th>Name</th><th>Spiritual name</th><th>Email</th><th>Phone</th><th>Guests</th><th>Seva</th><th>Dietary</th><th>Message</th><th>Confirmation</th><th>Donated</th></tr>';
+  rows.forEach(function(r){
+    h += '<tr><td>'+fdate(r.created_at)+'</td><td>'+esc(r.full_name)+'</td><td>'+esc(r.spiritual_name)+'</td><td>'+esc(r.email)+'</td><td>'+esc(r.phone)+'</td><td>'+
+      r.guests+'</td><td>'+esc(r.seva)+'</td><td>'+esc(r.dietary)+'</td><td>'+esc(r.message)+'</td><td>'+esc(r.confirmation_id)+'</td><td>'+money(r.donation_total)+'</td></tr>';
+  });
   return h + '</table>';
 }
 function donTable(rows){
