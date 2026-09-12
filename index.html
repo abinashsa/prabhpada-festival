@@ -116,6 +116,14 @@
   .section h2{font-size:26px;font-style:italic;font-weight:600;color:var(--indigo);margin-bottom:16px;}
   .rule{width:44px;height:2px;background:var(--saffron);margin-bottom:20px;}
 
+  /* ABOUT — keep the narrow column centered so side whitespace stays symmetric on wide screens */
+  .about h2{text-align:center;}
+  .about .rule{margin-left:auto;margin-right:auto;}
+  .about p{margin-left:auto;margin-right:auto;}
+  .quote-block{margin-left:auto;margin-right:auto;}
+  .sankirtan-figure{margin-left:auto;margin-right:auto;}
+  .note-card{margin-left:auto;margin-right:auto;}
+
   /* MANTRA BAND */
   .mantra-band{position:relative;background:radial-gradient(ellipse 90% 130% at 50% -20%, #2b3763 0%, var(--indigo) 55%, var(--indigo-2) 100%);padding:56px 24px;text-align:center;border-top:1px solid var(--gold);border-bottom:1px solid var(--gold);}
   .mantra-band::before{content:"";position:absolute;inset:12px;border:1px solid rgba(190,154,75,.45);pointer-events:none;}
