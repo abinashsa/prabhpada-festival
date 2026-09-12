@@ -29,6 +29,7 @@
   button { font-family:Georgia,serif; font-size:15px; padding:9px 20px; border-radius:8px; border:1px solid var(--gold); background:var(--gold); color:#fff; cursor:pointer; }
   button.ghost { background:transparent; color:var(--ink); }
   button.danger { background:#b3402e; border-color:#b3402e; padding:4px 10px; font-size:13px; }
+  button.small { padding:4px 10px; font-size:13px; }
   .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
   @media (max-width:640px){ .row{grid-template-columns:1fr;} }
   #gate { max-width:420px; margin:60px auto; text-align:center; }
@@ -39,6 +40,9 @@
   a.rcpt { color:var(--gold); }
   .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
   .topbar small { color:#8a7a5f; }
+  #emailModal { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(58,47,38,.5); display:flex; align-items:center; justify-content:center; z-index:100; }
+  #emailModal .card { width:min(480px,92vw); margin-bottom:0; }
+  #emailModal input, #emailModal textarea { margin:4px 0 8px; }
 </style>
 </head>
 <body>
@@ -87,6 +91,19 @@
       <div id="expTable"></div>
     </div>
   </div>
+  <div id="emailModal" class="hidden">
+    <div class="card">
+      <h3 style="margin-top:0">Email registrant</h3>
+      <input id="emTo" readonly placeholder="To">
+      <input id="emSubj" placeholder="Subject">
+      <textarea id="emMsg" rows="6" placeholder="Message"></textarea>
+      <div style="margin-top:12px;text-align:right">
+        <button class="ghost small" onclick="closeEmail()">Close</button>
+        <button class="small" onclick="sendEmail()">Send</button>
+      </div>
+      <div id="emStatus"></div>
+    </div>
+  </div>
 </div>
 <script>
 var KEY = '';
@@ -111,10 +128,9 @@ async function load(){   try {     var r = await fetch(BASE + '?page=admindata',
 function stat(v,l){ return '<div class="stat card"><div class="v">'+v+'</div><div class="l">'+l+'</div></div>'; }
 function regTable(rows){
   if(!rows.length) return '<p style="color:#8a7a5f">No registrations yet.</p>';
-  var h = '<table><tr><th>Date</th><th>Name</th><th>Spiritual name</th><th>Email</th><th>Phone</th><th>Guests</th><th>Seva</th><th>Dietary</th><th>Message</th><th>Confirmation</th><th>Donated</th></tr>';
+  var h = '<table><tr><th>Date</th><th>Name</th><th>Spiritual name</th><th>Email</th><th>Phone</th><th>Guests</th><th>Seva</th><th>Dietary</th><th>Message</th><th>Confirmation</th><th>Donated</th><th>Actions</th></tr>';
   rows.forEach(function(r){
-    h += '<tr><td>'+fdate(r.created_at)+'</td><td>'+esc(r.full_name)+'</td><td>'+esc(r.spiritual_name)+'</td><td>'+esc(r.email)+'</td><td>'+esc(r.phone)+'</td><td>'+
-      r.guests+'</td><td>'+esc(r.seva)+'</td><td>'+esc(r.dietary)+'</td><td>'+esc(r.message)+'</td><td>'+esc(r.confirmation_id)+'</td><td>'+money(r.donation_total)+'</td></tr>';
+    h += '<tr><td>'+fdate(r.created_at)+'</td><td>'+esc(r.full_name)+'</td><td>'+esc(r.spiritual_name)+'</td><td>'+esc(r.email)+'</td><td>'+esc(r.phone)+'</td><td>'+r.guests+'</td><td>'+esc(r.seva)+'</td><td>'+esc(r.dietary)+'</td><td>'+esc(r.message)+'</td><td>'+esc(r.confirmation_id)+'</td><td>'+money(r.donation_total)+'</td><td style="white-space:nowrap"><button class="danger" onclick="delReg('+r.id+')">Cancel</button> <button class="small" onclick="openEmail('+r.id+')">Email</button></td></tr>';
   });
   return h + '</table>';
 }
@@ -178,6 +194,39 @@ async function delExp(id){
   var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'deleteexpense', id:id, key:KEY})});
   var j = await r.json();
   if(j.ok) load(); else alert(j.error || 'Delete failed.');
+}
+async function delReg(id){
+  if(!confirm('Cancel this registration?')) return;
+  try{
+    var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'deleteregistration', key:KEY, id:id})});
+    var j = await r.json();
+    if(j.ok) load(); else alert(j.error || 'Cancel failed.');
+  }catch(e){ alert('Connection error: ' + e.message); }
+}
+function openEmail(id){
+  var reg = null;
+  REG.forEach(function(x){ if(x.id == id) reg = x; });
+  if(!reg) return;
+  document.getElementById('emTo').value = reg.email || '';
+  document.getElementById('emSubj').value = '';
+  document.getElementById('emMsg').value = '';
+  var st = document.getElementById('emStatus'); st.textContent = ''; st.className = '';
+  document.getElementById('emailModal').classList.remove('hidden');
+}
+function closeEmail(){ document.getElementById('emailModal').classList.add('hidden'); }
+async function sendEmail(){
+  var st = document.getElementById('emStatus');
+  var to = document.getElementById('emTo').value;
+  var subject = document.getElementById('emSubj').value;
+  var message = document.getElementById('emMsg').value;
+  if(!subject.trim() || !message.trim()){ st.textContent = 'Subject and message are required.'; st.className = 'err'; return; }
+  st.textContent = 'Sending…'; st.className = '';
+  try{
+    var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'sendemail', key:KEY, to:to, subject:subject, message:message})});
+    var j = await r.json();
+    if(j.ok){ st.textContent = 'Email sent.'; st.className = 'okmsg'; }
+    else { st.textContent = j.error || 'Send failed.'; st.className = 'err'; }
+  }catch(e){ st.textContent = 'Connection error: ' + e.message; st.className = 'err'; }
 }
 document.getElementById('expForm').addEventListener('submit', async function(e){
   e.preventDefault();
