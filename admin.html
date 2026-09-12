@@ -17,8 +17,10 @@
   .stat .v { font-size:26px; color:var(--gold); font-weight:bold; }
   .stat .l { font-size:13px; color:#8a7a5f; }
   .tabs { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
-  .tab { padding:8px 18px; border:1px solid #e8dcc3; background:var(--card); border-radius:20px; cursor:pointer; font-family:Georgia,serif; font-size:15px; }
+  .tab { padding:8px 18px; border:1px solid #e8dcc3; background:var(--card); border-radius:20px; cursor:pointer; font-family:Georgia,serif; font-size:15px; color:var(--ink); }
   .tab.active { background:var(--gold); color:#fff; border-color:var(--gold); }
+  #tab-reg, #tab-don, #tab-exp { overflow-x:auto; }
+  #tab-reg table, #tab-don table, #tab-exp table { min-width:560px; }
   table { width:100%; border-collapse:collapse; font-size:14px; }
   th, td { text-align:left; padding:8px 6px; border-bottom:1px solid #eee3cc; vertical-align:top; }
   th { color:#8a7a5f; font-weight:normal; font-style:italic; }
