@@ -117,16 +117,18 @@
   .rule{width:44px;height:2px;background:var(--saffron);margin-bottom:20px;}
 
   /* MANTRA BAND */
-  .mantra-band{background:radial-gradient(ellipse 90% 130% at 50% -20%, #2b3763 0%, var(--indigo) 55%, var(--indigo-2) 100%);padding:70px 20px;text-align:center;}
-  .mantra-eyebrow{font-size:11.5px;letter-spacing:.34em;text-indent:.34em;text-transform:uppercase;color:var(--gold);margin:0 0 24px;}
-  .mantra{font-family:'Fraunces',serif;font-size:clamp(27px,5.2vw,46px);line-height:1.7;color:#F7EEDB;font-weight:500;margin:0;}
+  .mantra-band{position:relative;background:radial-gradient(ellipse 90% 130% at 50% -20%, #2b3763 0%, var(--indigo) 55%, var(--indigo-2) 100%);padding:84px 24px;text-align:center;border-top:1px solid var(--gold);border-bottom:1px solid var(--gold);}
+  .mantra-band::before{content:"";position:absolute;inset:12px;border:1px solid rgba(190,154,75,.45);pointer-events:none;}
+  .mantra-band::after{content:"";position:absolute;inset:16px;border:1px solid rgba(190,154,75,.22);pointer-events:none;}
+  .mantra-eyebrow{position:relative;font-size:12px;letter-spacing:.4em;text-indent:.4em;text-transform:uppercase;color:var(--gold);margin:0 0 26px;}
+  .mantra{position:relative;font-family:'Fraunces',serif;font-size:clamp(28px,5.4vw,48px);line-height:1.75;color:#F7EEDB;font-weight:500;margin:0;text-shadow:0 2px 30px rgba(227,139,41,.28);}
   .mantra .m-line{display:block;}
-  .mantra-orn{display:flex;align-items:center;gap:16px;max-width:300px;margin:0 auto 26px;}
+  .mantra-orn{position:relative;display:flex;align-items:center;gap:16px;max-width:340px;margin:0 auto 28px;}
   .mantra-orn::before,.mantra-orn::after{content:"";height:1px;flex:1;}
   .mantra-orn::before{background:linear-gradient(90deg,transparent,var(--gold));}
   .mantra-orn::after{background:linear-gradient(90deg,var(--gold),transparent);}
-  .mantra-orn span{color:var(--gold);font-size:17px;line-height:1;}
-  .mantra-band .mantra-orn:last-child{margin:30px auto 0;}
+  .mantra-orn span{color:var(--gold);font-size:19px;line-height:1;}
+  .mantra-band .mantra-orn:last-child{margin:32px auto 0;}
   .about p{max-width:640px;color:var(--ink-soft);font-size:15.5px;}
 
   /* SCHEDULE-ish note card */
