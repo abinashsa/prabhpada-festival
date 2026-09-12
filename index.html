@@ -146,6 +146,9 @@
   input[type=text],input[type=email],input[type=tel],input[type=number],textarea{width:100%;padding:11px 12px;border:1px solid #d8c79a;border-radius:2px;background:#fffef9;font-family:'Work Sans',sans-serif;font-size:14.5px;color:var(--ink);}
   input:focus,textarea:focus,button:focus-visible{outline:2px solid var(--saffron-dark);outline-offset:1px;}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .seva-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-top:2px;}
+  .seva-opt{display:flex;align-items:center;gap:9px;font-size:14.5px;text-transform:none;letter-spacing:normal;color:var(--ink);margin-bottom:0;cursor:pointer;font-family:'Work Sans',sans-serif;}
+  .seva-opt input[type=checkbox]{width:17px;height:17px;accent-color:var(--saffron-dark);flex:none;}
   .submit-btn{width:100%;padding:14px;font-size:15px;}
   .err{color:var(--vermillion);font-size:12.5px;margin-top:-10px;margin-bottom:14px;display:none;}
   .err.show{display:block;}
@@ -354,8 +357,24 @@
         </div>
 
         <div class="field">
+          <label>Seva — I'd like to help with (optional)</label>
+          <div class="seva-grid">
+            <label class="seva-opt"><input type="checkbox" name="seva" value="Kirtan"> Kirtan</label>
+            <label class="seva-opt"><input type="checkbox" name="seva" value="Prasadam prep & serving"> Prasādam prep &amp; serving</label>
+            <label class="seva-opt"><input type="checkbox" name="seva" value="Setup"> Setup</label>
+            <label class="seva-opt"><input type="checkbox" name="seva" value="Cleanup"> Cleanup</label>
+            <label class="seva-opt"><input type="checkbox" name="seva" value="Decoration"> Decoration</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="dietary">Dietary Restrictions / Allergies (optional)</label>
+          <input type="text" id="dietary" placeholder="e.g. nut allergy, gluten-free">
+        </div>
+
+        <div class="field">
           <label for="message">Note to Organizers (optional)</label>
-          <textarea id="message" rows="2" placeholder="Dietary needs, volunteering interest, anything else"></textarea>
+          <textarea id="message" rows="2" placeholder="Anything else you'd like us to know"></textarea>
         </div>
 
         <div class="err" id="err-submit">Sorry — we couldn't save your response. Please try again.</div>
@@ -527,6 +546,8 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
   const email = document.getElementById('email').value.trim();
   const phone = document.getElementById('phone').value.trim();
   const guestCount = parseInt(document.getElementById('guestCount').value,10) || 1;
+  const seva = Array.from(document.querySelectorAll('input[name="seva"]:checked')).map(c=>c.value).join(', ');
+  const dietary = document.getElementById('dietary').value.trim();
   const message = document.getElementById('message').value.trim();
 
   let ok = true;
@@ -536,7 +557,7 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
   if(!validEmail(email)){ document.getElementById('err-email').classList.add('show'); ok=false; }
   if(!ok) return;
 
-  const entry = { fullName, spiritualName, email, phone, guestCount, message };
+  const entry = { fullName, spiritualName, email, phone, guestCount, seva, dietary, message };
 
   const submitBtn = e.target.querySelector('.submit-btn');
   const submitLabel = submitBtn.textContent;
