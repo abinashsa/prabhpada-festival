@@ -326,9 +326,14 @@
     <div id="formStage">
       <form class="form-wrap" id="regForm">
         <div class="field">
-          <label for="fullName">Full Name</label>
+          <label for="fullName">Legal Name</label>
           <input type="text" id="fullName" required>
           <div class="err" id="err-fullName">Please enter your name.</div>
+        </div>
+
+        <div class="field">
+          <label for="spiritualName">Initiated Name (optional)</label>
+          <input type="text" id="spiritualName" placeholder="Initiated name, if any">
         </div>
 
         <div class="row2">
@@ -518,6 +523,7 @@ function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 document.getElementById('regForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const fullName = document.getElementById('fullName').value.trim();
+  const spiritualName = document.getElementById('spiritualName').value.trim();
   const email = document.getElementById('email').value.trim();
   const phone = document.getElementById('phone').value.trim();
   const guestCount = parseInt(document.getElementById('guestCount').value,10) || 1;
@@ -530,7 +536,7 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
   if(!validEmail(email)){ document.getElementById('err-email').classList.add('show'); ok=false; }
   if(!ok) return;
 
-  const entry = { fullName, email, phone, guestCount, message };
+  const entry = { fullName, spiritualName, email, phone, guestCount, message };
 
   const submitBtn = e.target.querySelector('.submit-btn');
   const submitLabel = submitBtn.textContent;
