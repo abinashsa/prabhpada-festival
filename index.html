@@ -54,6 +54,13 @@
   .sun-arc svg{width:100%;height:auto;display:block;}
   .arc-labels{display:flex;justify-content:space-between;max-width:520px;margin:2px auto 0;padding:0 20px;font-size:11px;color:#b9c0dc;}
   .hero-cta{display:flex;justify-content:center;align-items:center;gap:14px;flex-wrap:wrap;margin-top:34px;}
+  .countdown{margin-top:32px;text-align:center;}
+  .cd-caption{font-size:11px;text-transform:uppercase;letter-spacing:.18em;color:#b9c0dc;margin-bottom:10px;}
+  .cd-row{display:flex;justify-content:center;align-items:flex-start;gap:14px;}
+  .cd-unit{min-width:64px;}
+  .cd-num{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(28px,5.5vw,38px);color:var(--gold);line-height:1;font-variant-numeric:tabular-nums;}
+  .cd-label{font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:#8f97b8;margin-top:6px;}
+  .cd-sep{font-family:'Fraunces',serif;font-size:26px;color:#5a6488;line-height:1.35;}
   .zeffy[hidden]{display:none;}
   .btn{display:inline-block;background:var(--saffron);color:var(--indigo-2);font-weight:600;padding:13px 30px;border-radius:3px;border:none;font-size:15px;text-decoration:none;transition:transform .15s ease, background .15s ease;}
   .btn:hover{background:var(--saffron-dark);color:var(--white);transform:translateY(-1px);}
@@ -195,6 +202,19 @@
     <div class="hero-cta">
       <a href="#register" class="btn">Share Your Intent to Attend</a>
       <a class="btn btn-outline zeffy" hidden>Donate</a>
+    </div>
+
+    <div class="countdown" id="countdown">
+      <div class="cd-caption mono">Until we gather</div>
+      <div class="cd-row">
+        <div class="cd-unit"><div class="cd-num" id="cd-days">&ndash;</div><div class="cd-label mono">Days</div></div>
+        <div class="cd-sep">:</div>
+        <div class="cd-unit"><div class="cd-num" id="cd-hours">&ndash;</div><div class="cd-label mono">Hours</div></div>
+        <div class="cd-sep">:</div>
+        <div class="cd-unit"><div class="cd-num" id="cd-minutes">&ndash;</div><div class="cd-label mono">Minutes</div></div>
+        <div class="cd-sep">:</div>
+        <div class="cd-unit"><div class="cd-num" id="cd-seconds">&ndash;</div><div class="cd-label mono">Seconds</div></div>
+      </div>
     </div>
   </div>
 </div>
@@ -630,6 +650,30 @@ document.getElementById('newRegBtn').addEventListener('click', ()=>{
   document.getElementById('formStage').style.display='block';
   window.scrollTo({top: document.getElementById('register').offsetTop - 20, behavior:'smooth'});
 });
+</script>
+
+<script>
+/* Countdown to the festival — Saturday, December 5, 2026, 10:00 AM ET */
+(function(){
+  var target = new Date('2026-12-05T10:00:00-05:00').getTime();
+  var box = document.getElementById('countdown');
+  if(!box || isNaN(target)) return;
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function tick(){
+    var diff = target - Date.now();
+    if(diff <= 0){
+      clearInterval(timer);
+      box.innerHTML = '<div class="cd-caption mono">The festival is here &mdash; Hare Krishna!</div>';
+      return;
+    }
+    document.getElementById('cd-days').textContent = Math.floor(diff / 86400000);
+    document.getElementById('cd-hours').textContent = pad(Math.floor(diff / 3600000) % 24);
+    document.getElementById('cd-minutes').textContent = pad(Math.floor(diff / 60000) % 60);
+    document.getElementById('cd-seconds').textContent = pad(Math.floor(diff / 1000) % 60);
+  }
+  var timer = setInterval(tick, 1000);
+  tick();
+})();
 </script>
 
 <script>
