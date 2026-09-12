@@ -104,16 +104,7 @@ async function unlock(){
   load();
 }
 function forget(){ try{ localStorage.removeItem('lf_key'); }catch(e){} location.reload(); }
-async function load(){
-  var r = await fetch(BASE + '?page=admindata', {headers:{'X-Admin-Key': KEY}});
-  var j = await r.json();
-  if(!j.ok){ document.getElementById('gateErr').textContent = j.error || 'Could not load.'; return; }
-  var s = j.summary;
-  document.getElementById('stats').innerHTML = stat(money(s.donations),'Donations (' + s.donationCount + ')') + stat(s.attendees,'Attendees (' + s.registrations + ' registrations)') + stat(money(s.expenses),'Expenses') + stat(money(s.donations - s.expenses),'Net');
-  document.getElementById('tab-reg').innerHTML = regTable(j.registrations);
-  document.getElementById('tab-don').innerHTML = donTable(j.donations);
-  document.getElementById('expTable').innerHTML = expTable(j.expenses);
-}
+async function load(){   try {     var r = await fetch(BASE + '?page=admindata', {headers:{'X-Admin-Key': KEY}});     var j = await r.json();     if(!j.ok){ document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Error: ' + esc(j.error || 'Could not load.') + '</div>'; return; }     var s = j.summary;     document.getElementById('stats').innerHTML =       stat(money(s.donations),'Donations (' + s.donationCount + ')') +       stat(s.attendees,'Attendees (' + s.registrations + ' registrations)') +       stat(money(s.expenses),'Expenses') +       stat(money(s.donations - s.expenses),'Net');     document.getElementById('tab-reg').innerHTML = regTable(j.registrations);     document.getElementById('tab-don').innerHTML = donTable(j.donations);     document.getElementById('expTable').innerHTML = expTable(j.expenses);   } catch(e) {     document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Connection error: ' + esc(e.message) + '</div>';   } }
 function stat(v,l){ return '<div class="stat card"><div class="v">'+v+'</div><div class="l">'+l+'</div></div>'; }
 function regTable(rows){
   if(!rows.length) return '<p style="color:#8a7a5f">No registrations yet.</p>';
