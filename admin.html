@@ -20,8 +20,8 @@
   .tab { padding:8px 18px; border:1px solid #e8dcc3; background:var(--card); border-radius:20px; cursor:pointer; font-family:Georgia,serif; font-size:15px; color:var(--ink); }
   .tab.active { background:var(--gold); color:#fff; border-color:var(--gold); }
   .exportbtn { margin-left:auto; background:transparent; color:var(--ink); }
-  #tab-reg, #tab-don, #tab-exp { overflow-x:auto; }
-  #tab-reg table, #tab-don table, #tab-exp table { min-width:560px; }
+  #tab-reg, #tab-don, #tab-exp, #tab-trash { overflow-x:auto; }
+  #tab-reg table, #tab-don table, #tab-exp table, #tab-trash table { min-width:560px; }
   table { width:100%; border-collapse:collapse; font-size:14px; }
   th, td { text-align:left; padding:8px 6px; border-bottom:1px solid #eee3cc; vertical-align:top; }
   th { color:#8a7a5f; font-weight:normal; font-style:italic; }
@@ -67,6 +67,7 @@
       <button class="tab active" onclick="showTab('reg',this)">Registrations</button>
       <button class="tab" onclick="showTab('don',this)">Donations</button>
       <button class="tab" onclick="showTab('exp',this)">Expenses</button>
+      <button class="tab" id="trashTabBtn" onclick="showTab('trash',this)">Trash</button>
       <button class="exportbtn" onclick="exportCSV()">Export CSV</button>
     </div>
     <div class="card" id="tab-reg"></div>
@@ -123,6 +124,7 @@
       <hr style="border:none;border-top:1px solid #eee3cc;margin:16px 0">
       <div id="expTable"></div>
     </div>
+    <div class="card hidden" id="tab-trash"></div>
   </div>
   <div id="emailModal" class="hidden">
     <div class="card">
@@ -142,6 +144,7 @@
 var KEY = '';
 var BASE = 'https://festival-api.abinash-a-sahoo.workers.dev/';
 var REG = [], DON = [], EXP = [];
+var TRASH = {registrations:[], donations:[], expenses:[]};
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function money(n){ return '$' + (parseFloat(n)||0).toFixed(2); }
 function fdate(s){ if(!s) return ''; try{ return new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }catch(e){ return s; } }
@@ -157,7 +160,7 @@ async function unlock(){
   load();
 }
 
-async function load(){   try {     var r = await fetch(BASE + '?page=admindata', {headers:{'X-Admin-Key': KEY}});     var j = await r.json();     if(!j.ok){ document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Error: ' + esc(j.error || 'Could not load.') + '</div>'; return; }     var s = j.summary;     REG = j.registrations || [];     DON = j.donations || [];     EXP = j.expenses || [];     document.getElementById('stats').innerHTML =       stat(money(s.donations),'Donations (' + s.donationCount + ')') +       stat(s.attendees,'Attendees (' + s.registrations + ' registrations)') +       stat(money(s.expenses),'Expenses') +       stat(money(s.donations - s.expenses),'Net');     document.getElementById('tab-reg').innerHTML = regTable(REG);     document.getElementById('donTable').innerHTML = donTable(DON);     document.getElementById('expTable').innerHTML = expTable(EXP);   } catch(e) {     document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Connection error: ' + esc(e.message) + '</div>';   } }
+async function load(){   try {     var r = await fetch(BASE + '?page=admindata', {headers:{'X-Admin-Key': KEY}});     var j = await r.json();     if(!j.ok){ document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Error: ' + esc(j.error || 'Could not load.') + '</div>'; return; }     var s = j.summary;     REG = j.registrations || [];     DON = j.donations || [];     EXP = j.expenses || [];     document.getElementById('stats').innerHTML =       stat(money(s.donations),'Donations (' + s.donationCount + ')') +       stat(s.attendees,'Attendees (' + s.registrations + ' registrations)') +       stat(money(s.expenses),'Expenses') +       stat(money(s.donations - s.expenses),'Net');     document.getElementById('tab-reg').innerHTML = regTable(REG);     document.getElementById('donTable').innerHTML = donTable(DON);     document.getElementById('expTable').innerHTML = expTable(EXP);     TRASH = j.trash || {registrations:[], donations:[], expenses:[]};     document.getElementById('tab-trash').innerHTML = trashHTML();     var tn = (TRASH.registrations||[]).length + (TRASH.donations||[]).length + (TRASH.expenses||[]).length;     document.getElementById('trashTabBtn').textContent = 'Trash' + (tn ? ' (' + tn + ')' : '');   } catch(e) {     document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Connection error: ' + esc(e.message) + '</div>';   } }
 function stat(v,l){ return '<div class="stat card"><div class="v">'+v+'</div><div class="l">'+l+'</div></div>'; }
 function regTable(rows){
   if(!rows.length) return '<p style="color:#8a7a5f">No registrations yet.</p>';
@@ -180,13 +183,13 @@ function expTable(rows){
   return h + '</table>';
 }
 function showTab(name, el){
-  ['reg','don','exp'].forEach(function(t){ document.getElementById('tab-'+t).classList.add('hidden'); });
+  ['reg','don','exp','trash'].forEach(function(t){ document.getElementById('tab-'+t).classList.add('hidden'); });
   document.getElementById('tab-'+name).classList.remove('hidden');
   document.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('active'); });
   el.classList.add('active');
 }
 function activeTabName(){
-  var tabs = ['reg','don','exp'];
+  var tabs = ['reg','don','exp','trash'];
   for(var i=0;i<tabs.length;i++){ if(!document.getElementById('tab-'+tabs[i]).classList.contains('hidden')) return tabs[i]; }
   return 'reg';
 }
@@ -203,6 +206,7 @@ function downloadCSV(name, cols, rows){
 }
 function exportCSV(){
   var t = activeTabName();
+  if(t === 'trash'){ alert('Trash cannot be exported — switch to a data tab.'); return; }
   var d = new Date();
   var stamp = d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2);
   var cfg = {
@@ -259,6 +263,82 @@ async function delReg(btn, id){
     var j = await r.json();
     if(j.ok) load(); else { alert(j.error || 'Cancel failed.'); load(); }
   }catch(e){ alert('Connection error: ' + e.message); load(); }
+}
+// ---- Trash: soft-deleted donations/expenses and cancelled registrations.
+// Restore is a single click (non-destructive); Delete forever uses the
+// two-step arm pattern because it is permanent.
+function trashHTML(){
+  var tr = TRASH.registrations || [], td = TRASH.donations || [], te = TRASH.expenses || [];
+  var h = '<h3 style="margin-top:0">Trash</h3>' +
+    '<p style="color:#8a7a5f;font-size:14px;margin-top:0">Deleted and cancelled items rest here and do not count toward totals. <b>Restore</b> brings an item back; <b>Delete forever</b> removes it permanently.</p>';
+  h += '<h4>Cancelled registrations (' + tr.length + ')</h4>';
+  if(!tr.length) h += '<p style="color:#8a7a5f">None.</p>';
+  else {
+    h += '<table><tr><th>Date</th><th>Name</th><th>Email</th><th>Confirmation</th><th></th></tr>';
+    tr.forEach(function(r){
+      h += '<tr><td>'+fdate(r.created_at)+'</td><td>'+esc(r.full_name)+'</td><td>'+esc(r.email)+'</td><td>'+esc(r.confirmation_id)+'</td><td style="white-space:nowrap"><button class="small" onclick="restoreReg('+r.id+',this)">Restore</button> <button class="danger" onclick="wipeReg(this,'+r.id+')">Delete forever</button></td></tr>';
+    });
+    h += '</table>';
+  }
+  h += '<h4>Deleted donations (' + td.length + ')</h4>';
+  if(!td.length) h += '<p style="color:#8a7a5f">None.</p>';
+  else {
+    h += '<table><tr><th>Date</th><th>Donor</th><th>Email</th><th>Amount</th><th>Source</th><th></th></tr>';
+    td.forEach(function(r){
+      h += '<tr><td>'+fdate(r.created_at)+'</td><td>'+esc(r.donor_name)+'</td><td>'+esc(r.email)+'</td><td>'+money(r.amount)+'</td><td>'+esc(r.source||'')+'</td><td style="white-space:nowrap"><button class="small" onclick="restoreDon('+r.id+',this)">Restore</button> <button class="danger" onclick="wipeDon(this,'+r.id+')">Delete forever</button></td></tr>';
+    });
+    h += '</table>';
+  }
+  h += '<h4>Deleted expenses (' + te.length + ')</h4>';
+  if(!te.length) h += '<p style="color:#8a7a5f">None.</p>';
+  else {
+    h += '<table><tr><th>Date</th><th>Vendor</th><th>Description</th><th>Amount</th><th>Receipt</th><th></th></tr>';
+    te.forEach(function(r){
+      var rc = r.r2_key ? '<button class="ghost" style="padding:4px 10px;font-size:13px" onclick="viewReceipt('+r.id+')">View</button>' : '—';
+      h += '<tr><td>'+esc(r.date||fdate(r.created_at))+'</td><td>'+esc(r.vendor)+'</td><td>'+esc(r.description)+'</td><td>'+money(r.amount)+'</td><td>'+rc+'</td><td style="white-space:nowrap"><button class="small" onclick="restoreExp('+r.id+',this)">Restore</button> <button class="danger" onclick="wipeExp(this,'+r.id+')">Delete forever</button></td></tr>';
+    });
+    h += '</table>';
+  }
+  return h;
+}
+async function restoreDon(id, btn){
+  btn.disabled = true; btn.textContent = 'Restoring…';
+  var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'restoredonation', id:id, key:KEY})});
+  var j = await r.json();
+  if(j.ok) load(); else { alert(j.error || 'Restore failed.'); load(); }
+}
+async function restoreExp(id, btn){
+  btn.disabled = true; btn.textContent = 'Restoring…';
+  var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'restoreexpense', id:id, key:KEY})});
+  var j = await r.json();
+  if(j.ok) load(); else { alert(j.error || 'Restore failed.'); load(); }
+}
+async function restoreReg(id, btn){
+  btn.disabled = true; btn.textContent = 'Restoring…';
+  var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'restoreregistration', id:id, key:KEY})});
+  var j = await r.json();
+  if(j.ok) load(); else { alert(j.error || 'Restore failed.'); load(); }
+}
+async function wipeDon(btn, id){
+  if(!armStep(btn)) return;
+  btn.disabled = true; btn.textContent = 'Deleting…';
+  var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'permdeletedonation', id:id, key:KEY})});
+  var j = await r.json();
+  if(j.ok) load(); else { alert(j.error || 'Delete failed.'); load(); }
+}
+async function wipeExp(btn, id){
+  if(!armStep(btn)) return;
+  btn.disabled = true; btn.textContent = 'Deleting…';
+  var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'permdeleteexpense', id:id, key:KEY})});
+  var j = await r.json();
+  if(j.ok) load(); else { alert(j.error || 'Delete failed.'); load(); }
+}
+async function wipeReg(btn, id){
+  if(!armStep(btn)) return;
+  btn.disabled = true; btn.textContent = 'Deleting…';
+  var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'permdeleteregistration', id:id, key:KEY})});
+  var j = await r.json();
+  if(j.ok) load(); else { alert(j.error || 'Delete failed.'); load(); }
 }
 function openEmail(id){
   var reg = null;
