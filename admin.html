@@ -167,8 +167,8 @@ function regTable(rows){
 }
 function donTable(rows){
   if(!rows.length) return '<p style="color:#8a7a5f">No donations yet.</p>';
-  var h = '<table><tr><th>Date</th><th>Donor</th><th>Email</th><th>Amount</th><th>Source</th><th>Matched</th><th>Receipt</th></tr>';
-  rows.forEach(function(r){ h += '<tr><td>'+fdate(r.created_at)+'</td><td>'+esc(r.donor_name)+'</td><td>'+esc(r.email)+ '</td><td>'+money(r.amount)+'</td><td>'+esc(r.source||'')+'</td><td>'+esc(r.matched)+'</td><td>'+esc(r.receipt_no)+'</td></tr>'; });
+  var h = '<table><tr><th>Date</th><th>Donor</th><th>Email</th><th>Amount</th><th>Source</th><th>Matched</th><th>Receipt</th><th></th></tr>';
+  rows.forEach(function(r){ h += '<tr><td>'+fdate(r.created_at)+'</td><td>'+esc(r.donor_name)+'</td><td>'+esc(r.email)+ '</td><td>'+money(r.amount)+'</td><td>'+esc(r.source||'')+'</td><td>'+esc(r.matched)+'</td><td>'+esc(r.receipt_no)+'</td><td><button class="danger" onclick="delDon('+r.id+')">Delete</button></td></tr>'; });
   return h + '</table>';
 }
 function expTable(rows){
@@ -219,6 +219,13 @@ async function viewReceipt(id){
   if(!r.ok){ alert('Could not open receipt.'); return; }
   var b = await r.blob();
   window.open(URL.createObjectURL(b), '_blank');
+}
+async function delDon(id){
+  if(!confirm('Delete this donation? The linked registration total will be updated.')) return;
+  var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({action:'deletedonation', id:id, key:KEY})});
+  var j = await r.json();
+  if(j.ok) load(); else alert(j.error || 'Delete failed.');
 }
 async function delExp(id){
   if(!confirm('Delete this expense?')) return;
