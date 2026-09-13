@@ -29,6 +29,8 @@
   button { font-family:Georgia,serif; font-size:15px; padding:9px 20px; border-radius:8px; border:1px solid var(--gold); background:var(--gold); color:#fff; cursor:pointer; }
   button.ghost { background:transparent; color:var(--ink); }
   button.danger { background:#b3402e; border-color:#b3402e; padding:4px 10px; font-size:13px; }
+  button.danger.armed { background:#7f1d1d; border-color:#7f1d1d; animation:armpulse 1s infinite; }
+  @keyframes armpulse { 0%,100%{opacity:1} 50%{opacity:.55} }
   button.small { padding:4px 10px; font-size:13px; }
   .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
   @media (max-width:640px){ .row{grid-template-columns:1fr;} }
@@ -161,20 +163,20 @@ function regTable(rows){
   if(!rows.length) return '<p style="color:#8a7a5f">No registrations yet.</p>';
   var h = '<table><tr><th>Date</th><th>Name</th><th>Spiritual name</th><th>Email</th><th>Phone</th><th>Guests</th><th>Seva</th><th>Dietary</th><th>Message</th><th>Confirmation</th><th>Donated</th><th>Actions</th></tr>';
   rows.forEach(function(r){
-    h += '<tr><td>'+fdate(r.created_at)+'</td><td>'+esc(r.full_name)+'</td><td>'+esc(r.spiritual_name)+'</td><td>'+esc(r.email)+'</td><td>'+esc(r.phone)+'</td><td>'+r.guests+'</td><td>'+esc(r.seva)+'</td><td>'+esc(r.dietary)+'</td><td>'+esc(r.message)+'</td><td>'+esc(r.confirmation_id)+'</td><td>'+money(r.donation_total)+'</td><td style="white-space:nowrap"><button class="danger" onclick="delReg('+r.id+')">Cancel</button> <button class="small" onclick="openEmail('+r.id+')">Email</button></td></tr>';
+    h += '<tr><td>'+fdate(r.created_at)+'</td><td>'+esc(r.full_name)+'</td><td>'+esc(r.spiritual_name)+'</td><td>'+esc(r.email)+'</td><td>'+esc(r.phone)+'</td><td>'+r.guests+'</td><td>'+esc(r.seva)+'</td><td>'+esc(r.dietary)+'</td><td>'+esc(r.message)+'</td><td>'+esc(r.confirmation_id)+'</td><td>'+money(r.donation_total)+'</td><td style="white-space:nowrap"><button class="danger" onclick="delReg(this,'+r.id+')">Cancel</button> <button class="small" onclick="openEmail('+r.id+')">Email</button></td></tr>';
   });
   return h + '</table>';
 }
 function donTable(rows){
   if(!rows.length) return '<p style="color:#8a7a5f">No donations yet.</p>';
   var h = '<table><tr><th>Date</th><th>Donor</th><th>Email</th><th>Amount</th><th>Source</th><th>Matched</th><th>Receipt</th><th></th></tr>';
-  rows.forEach(function(r){ h += '<tr><td>'+fdate(r.created_at)+'</td><td>'+esc(r.donor_name)+'</td><td>'+esc(r.email)+ '</td><td>'+money(r.amount)+'</td><td>'+esc(r.source||'')+'</td><td>'+esc(r.matched)+'</td><td>'+esc(r.receipt_no)+'</td><td><button class="danger" onclick="delDon('+r.id+')">Delete</button></td></tr>'; });
+  rows.forEach(function(r){ h += '<tr><td>'+fdate(r.created_at)+'</td><td>'+esc(r.donor_name)+'</td><td>'+esc(r.email)+ '</td><td>'+money(r.amount)+'</td><td>'+esc(r.source||'')+'</td><td>'+esc(r.matched)+'</td><td>'+esc(r.receipt_no)+'</td><td><button class="danger" onclick="delDon(this,'+r.id+')">Delete</button></td></tr>'; });
   return h + '</table>';
 }
 function expTable(rows){
   if(!rows.length) return '<p style="color:#8a7a5f">No expenses yet.</p>';
   var h = '<table><tr><th>Date</th><th>Vendor</th><th>Description</th><th>Amount</th><th>Reference</th><th>Receipt</th><th></th></tr>';
-  rows.forEach(function(r){ var rc = r.r2_key ? '<button class="ghost" style="padding:4px 10px;font-size:13px" onclick="viewReceipt('+r.id+')">View</button>' : '—'; h += '<tr><td>'+esc(r.date||fdate(r.created_at))+'</td><td>'+esc(r.vendor)+'</td><td>'+esc(r.description)+ '</td><td>'+money(r.amount)+'</td><td>'+esc(r.reference)+'</td><td>'+rc+ '</td><td><button class="danger" onclick="delExp('+r.id+')">Delete</button></td></tr>'; });
+  rows.forEach(function(r){ var rc = r.r2_key ? '<button class="ghost" style="padding:4px 10px;font-size:13px" onclick="viewReceipt('+r.id+')">View</button>' : '—'; h += '<tr><td>'+esc(r.date||fdate(r.created_at))+'</td><td>'+esc(r.vendor)+'</td><td>'+esc(r.description)+ '</td><td>'+money(r.amount)+'</td><td>'+esc(r.reference)+'</td><td>'+rc+ '</td><td><button class="danger" onclick="delExp(this,'+r.id+')">Delete</button></td></tr>'; });
   return h + '</table>';
 }
 function showTab(name, el){
@@ -220,26 +222,43 @@ async function viewReceipt(id){
   var b = await r.blob();
   window.open(URL.createObjectURL(b), '_blank');
 }
-async function delDon(id){
-  if(!confirm('Delete this donation? The linked registration total will be updated.')) return;
+// Two-step approval for destructive actions: the first click arms the button
+// (it pulses and reads "Confirm?"); a second click within 6 seconds executes.
+// Clicking anywhere else or waiting disarms it. Guards against accidental taps.
+function disarmBtn(b){ if(!b) return; delete b.dataset.armed; b.classList.remove('armed'); if(b.dataset.label) b.textContent = b.dataset.label; if(b._t){ clearTimeout(b._t); b._t = null; } }
+function armStep(b){
+  if(b.dataset.armed) return true; // second click = confirmed
+  document.querySelectorAll('button[data-armed]').forEach(disarmBtn);
+  b.dataset.armed = '1';
+  b.dataset.label = b.textContent;
+  b.textContent = 'Confirm?';
+  b.classList.add('armed');
+  b._t = setTimeout(function(){ disarmBtn(b); }, 6000);
+  return false;
+}
+async function delDon(btn, id){
+  if(!armStep(btn)) return;
+  btn.disabled = true; btn.textContent = 'Deleting…';
   var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({action:'deletedonation', id:id, key:KEY})});
   var j = await r.json();
-  if(j.ok) load(); else alert(j.error || 'Delete failed.');
+  if(j.ok) load(); else { alert(j.error || 'Delete failed.'); load(); }
 }
-async function delExp(id){
-  if(!confirm('Delete this expense?')) return;
+async function delExp(btn, id){
+  if(!armStep(btn)) return;
+  btn.disabled = true; btn.textContent = 'Deleting…';
   var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'deleteexpense', id:id, key:KEY})});
   var j = await r.json();
-  if(j.ok) load(); else alert(j.error || 'Delete failed.');
+  if(j.ok) load(); else { alert(j.error || 'Delete failed.'); load(); }
 }
-async function delReg(id){
-  if(!confirm('Cancel this registration?')) return;
+async function delReg(btn, id){
+  if(!armStep(btn)) return;
+  btn.disabled = true; btn.textContent = 'Cancelling…';
   try{
     var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'deleteregistration', key:KEY, id:id})});
     var j = await r.json();
-    if(j.ok) load(); else alert(j.error || 'Cancel failed.');
-  }catch(e){ alert('Connection error: ' + e.message); }
+    if(j.ok) load(); else { alert(j.error || 'Cancel failed.'); load(); }
+  }catch(e){ alert('Connection error: ' + e.message); load(); }
 }
 function openEmail(id){
   var reg = null;
