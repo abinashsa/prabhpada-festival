@@ -68,7 +68,38 @@
       <button class="exportbtn" onclick="exportCSV()">Export CSV</button>
     </div>
     <div class="card" id="tab-reg"></div>
-    <div class="card hidden" id="tab-don"></div>
+    <div class="card hidden" id="tab-don">
+      <h3 style="margin-top:0">Record donation</h3>
+      <form id="donForm">
+        <div class="row">
+          <input name="donorName" placeholder="Donor name">
+          <input name="email" type="email" placeholder="Donor email (for matching)">
+        </div>
+        <div class="row">
+          <input name="amount" type="number" step="0.01" min="0.01" placeholder="Amount (USD)" required>
+          <input name="date" type="date" placeholder="Date">
+        </div>
+        <div class="row">
+          <input name="source" placeholder="Source (e.g. Benevity)" value="Benevity">
+          <input name="notes" placeholder="Notes (optional)">
+        </div>
+        <button type="submit">Record donation</button>
+        <span id="donMsg" style="margin-left:10px"></span>
+      </form>
+      <hr style="border:none;border-top:1px solid #eee3cc;margin:16px 0">
+      <h3 style="margin-top:0">Import from CSV</h3>
+      <p style="color:#8a7a5f;font-size:14px;margin-top:0">Upload a Benevity disbursement report or any CSV with headers like <i>name, email, amount, date</i>. Rows match to registrations by email automatically; already-recorded rows are skipped.</p>
+      <form id="csvForm">
+        <div class="row">
+          <input type="file" id="csvFile" accept=".csv,text/csv" required>
+          <input name="source" placeholder="Source label" value="Benevity">
+        </div>
+        <button type="submit">Import CSV</button>
+        <span id="csvMsg" style="margin-left:10px"></span>
+      </form>
+      <hr style="border:none;border-top:1px solid #eee3cc;margin:16px 0">
+      <div id="donTable"></div>
+    </div>
     <div class="card hidden" id="tab-exp">
       <h3 style="margin-top:0">Add expense</h3>
       <form id="expForm">
@@ -124,7 +155,7 @@ async function unlock(){
   load();
 }
 
-async function load(){   try {     var r = await fetch(BASE + '?page=admindata', {headers:{'X-Admin-Key': KEY}});     var j = await r.json();     if(!j.ok){ document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Error: ' + esc(j.error || 'Could not load.') + '</div>'; return; }     var s = j.summary;     REG = j.registrations || [];     DON = j.donations || [];     EXP = j.expenses || [];     document.getElementById('stats').innerHTML =       stat(money(s.donations),'Donations (' + s.donationCount + ')') +       stat(s.attendees,'Attendees (' + s.registrations + ' registrations)') +       stat(money(s.expenses),'Expenses') +       stat(money(s.donations - s.expenses),'Net');     document.getElementById('tab-reg').innerHTML = regTable(REG);     document.getElementById('tab-don').innerHTML = donTable(DON);     document.getElementById('expTable').innerHTML = expTable(EXP);   } catch(e) {     document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Connection error: ' + esc(e.message) + '</div>';   } }
+async function load(){   try {     var r = await fetch(BASE + '?page=admindata', {headers:{'X-Admin-Key': KEY}});     var j = await r.json();     if(!j.ok){ document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Error: ' + esc(j.error || 'Could not load.') + '</div>'; return; }     var s = j.summary;     REG = j.registrations || [];     DON = j.donations || [];     EXP = j.expenses || [];     document.getElementById('stats').innerHTML =       stat(money(s.donations),'Donations (' + s.donationCount + ')') +       stat(s.attendees,'Attendees (' + s.registrations + ' registrations)') +       stat(money(s.expenses),'Expenses') +       stat(money(s.donations - s.expenses),'Net');     document.getElementById('tab-reg').innerHTML = regTable(REG);     document.getElementById('donTable').innerHTML = donTable(DON);     document.getElementById('expTable').innerHTML = expTable(EXP);   } catch(e) {     document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Connection error: ' + esc(e.message) + '</div>';   } }
 function stat(v,l){ return '<div class="stat card"><div class="v">'+v+'</div><div class="l">'+l+'</div></div>'; }
 function regTable(rows){
   if(!rows.length) return '<p style="color:#8a7a5f">No registrations yet.</p>';
@@ -136,8 +167,8 @@ function regTable(rows){
 }
 function donTable(rows){
   if(!rows.length) return '<p style="color:#8a7a5f">No donations yet.</p>';
-  var h = '<table><tr><th>Date</th><th>Donor</th><th>Email</th><th>Amount</th><th>Matched</th><th>Receipt</th></tr>';
-  rows.forEach(function(r){ h += '<tr><td>'+fdate(r.created_at)+'</td><td>'+esc(r.donor_name)+'</td><td>'+esc(r.email)+ '</td><td>'+money(r.amount)+'</td><td>'+esc(r.matched)+'</td><td>'+esc(r.receipt_no)+'</td></tr>'; });
+  var h = '<table><tr><th>Date</th><th>Donor</th><th>Email</th><th>Amount</th><th>Source</th><th>Matched</th><th>Receipt</th></tr>';
+  rows.forEach(function(r){ h += '<tr><td>'+fdate(r.created_at)+'</td><td>'+esc(r.donor_name)+'</td><td>'+esc(r.email)+ '</td><td>'+money(r.amount)+'</td><td>'+esc(r.source||'')+'</td><td>'+esc(r.matched)+'</td><td>'+esc(r.receipt_no)+'</td></tr>'; });
   return h + '</table>';
 }
 function expTable(rows){
@@ -176,7 +207,7 @@ function exportCSV(){
     reg: { file:'registrations-'+stamp+'.csv', data:REG,
       cols:['created_at','full_name','spiritual_name','email','phone','guests','seva','dietary','message','confirmation_id','donation_total'] },
     don: { file:'donations-'+stamp+'.csv', data:DON,
-      cols:['created_at','donor_name','email','amount','matched','receipt_no'] },
+      cols:['created_at','donor_name','email','amount','source','matched','receipt_no'] },
     exp: { file:'expenses-'+stamp+'.csv', data:EXP,
       cols:['date','created_at','vendor','description','amount','reference'] }
   }[t];
@@ -228,6 +259,37 @@ async function sendEmail(){
     else { st.textContent = j.error || 'Send failed.'; st.className = 'err'; }
   }catch(e){ st.textContent = 'Connection error: ' + e.message; st.className = 'err'; }
 }
+document.getElementById('donForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  var msg = document.getElementById('donMsg');
+  msg.textContent = 'Saving\u2026'; msg.className = '';
+  var fd = new FormData(e.target);
+  var payload = {action:'adddonation', key:KEY};
+  fd.forEach(function(v,k){ payload[k] = v; });
+  var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+  var j = await r.json();
+  if(j.ok){ msg.textContent = 'Recorded.' + (j.matched ? ' Matched to registration.' : ''); msg.className='okmsg'; e.target.reset(); load(); }
+  else { msg.textContent = j.error || 'Save failed.'; msg.className='err'; }
+});
+document.getElementById('csvForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  var msg = document.getElementById('csvMsg');
+  var fileInput = document.getElementById('csvFile');
+  if(!fileInput.files.length){ msg.textContent = 'Choose a CSV file.'; msg.className='err'; return; }
+  msg.textContent = 'Importing\u2026'; msg.className = '';
+  var fd = new FormData();
+  fd.append('action','importdonations'); fd.append('key', KEY);
+  fd.append('csvfile', fileInput.files[0]);
+  var srcInput = e.target.querySelector('input[name="source"]');
+  fd.append('source', srcInput ? srcInput.value : 'Benevity');
+  var r = await fetch(BASE, {method:'POST', body: fd});
+  var j = await r.json();
+  if(j.ok){
+    msg.textContent = 'Imported ' + j.imported + ' donation(s)' + (j.matched ? ', ' + j.matched + ' matched' : '') + (j.skipped ? ', ' + j.skipped + ' skipped' : '') + '.';
+    msg.className='okmsg'; e.target.reset(); load();
+  }
+  else { msg.textContent = j.error || 'Import failed.'; msg.className='err'; }
+});
 document.getElementById('expForm').addEventListener('submit', async function(e){
   e.preventDefault();
   var msg = document.getElementById('expMsg');
