@@ -67,6 +67,11 @@
   .btn:focus-visible{outline:2px solid var(--gold);outline-offset:3px;}
   .btn-outline{background:transparent;border:1px solid var(--gold);color:var(--gold);}
   .btn-outline:hover{background:rgba(190,154,75,.12);color:var(--gold);}
+  .btn-sm{padding:9px 18px;font-size:13px;}
+  .save-share-caption{margin-top:22px;text-align:center;font-size:10.5px;text-transform:uppercase;letter-spacing:.22em;color:#8f97b8;}
+  .save-share{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;}
+  .btn-whatsapp{background:#25D366;color:#0b3d20;border:none;}
+  .btn-whatsapp:hover{background:#1eb856;color:#0b3d20;transform:translateY(-1px);}
 
   /* LEGENDARY GUESTS — circular portrait blocks */
   .guests{display:flex;flex-wrap:wrap;justify-content:center;gap:32px 36px;margin-top:30px;}
@@ -211,6 +216,13 @@
     <div class="hero-cta">
       <a href="#register" class="btn">Share Your Intent to Attend</a>
       <a class="btn btn-outline zeffy" hidden>Donate</a>
+    </div>
+
+    <div class="save-share-caption mono">Save the date &middot; Spread the word</div>
+    <div class="save-share">
+      <a class="btn btn-outline btn-sm" target="_blank" rel="noopener" href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=The+Legendary+Festival&amp;dates=20261205T150000Z/20261206T010000Z&amp;details=A+day+of+kirtan%2C+discourse+and+prasadam+in+honor+of+Srila+Prabhupada.+Register+free%3A+https%3A%2F%2Flegendaryfestival.org&amp;location=West+Chester%2C+Pennsylvania">Google Calendar</a>
+      <button class="btn btn-outline btn-sm" type="button" onclick="downloadICS()">Apple / Outlook</button>
+      <a class="btn btn-sm btn-whatsapp" target="_blank" rel="noopener" href="https://wa.me/?text=Hare%20Krishna!%20%F0%9F%99%8F%20You%27re%20invited%20to%20The%20Legendary%20Festival%20%E2%80%94%20a%20day%20of%20kirtan%2C%20discourse%20%26%20prasadam%20honoring%20Srila%20Prabhupada.%20Sat%2C%20Dec%205%2C%2010%20AM%E2%80%938%20PM%2C%20West%20Chester%2C%20PA.%20Register%20free%3A%20https%3A%2F%2Flegendaryfestival.org">Share on WhatsApp</a>
     </div>
 
     <div class="countdown" id="countdown">
@@ -718,6 +730,33 @@ const ZEFFY_DONATE_URL = 'https://www.zeffy.com/en-US/donation-form/the-legendar
     }
   });
 })();
+
+/* Add to Calendar: .ics download for Apple Calendar / Outlook */
+function downloadICS(){
+  var stamp = new Date().toISOString().replace(/[-:]/g,'').split('.')[0] + 'Z';
+  var lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Legendary Festival//EN',
+    'BEGIN:VEVENT',
+    'UID:legendary-festival-2026@legendaryfestival.org',
+    'DTSTAMP:' + stamp,
+    'DTSTART:20261205T150000Z',
+    'DTEND:20261206T010000Z',
+    'SUMMARY:The Legendary Festival',
+    'DESCRIPTION:A day of kirtan\\, discourse and prasadam in honor of Srila Prabhupada. Register free: https://legendaryfestival.org',
+    'LOCATION:West Chester\\, Pennsylvania',
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ];
+  var blob = new Blob([lines.join('\r\n')], {type:'text/calendar'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'legendary-festival.ics';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 800);
+}
 </script>
 
 </body>
