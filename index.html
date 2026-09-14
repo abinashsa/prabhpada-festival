@@ -22,6 +22,7 @@
     --white:#fffdf7;
   }
   *{box-sizing:border-box;}
+  html{background:var(--indigo-2);}
   body{margin:0;background:var(--parchment);color:var(--ink);font-family:'Work Sans',sans-serif;line-height:1.5;}
   h1,h2,h3{font-family:'Fraunces',serif;margin:0;}
   .mono{font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;}
@@ -67,9 +68,9 @@
   .btn:focus-visible{outline:2px solid var(--gold);outline-offset:3px;}
   .btn-outline{background:transparent;border:1px solid var(--gold);color:var(--gold);}
   .btn-outline:hover{background:rgba(190,154,75,.12);color:var(--gold);}
-  .btn-sm{padding:9px 18px;font-size:13px;}
+  .btn-sm{padding:12px 20px;font-size:13.5px;}
   .save-share-caption{margin-top:22px;text-align:center;font-size:10.5px;text-transform:uppercase;letter-spacing:.22em;color:#8f97b8;}
-  .save-share{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;}
+  .save-share{display:flex;justify-content:center;align-items:center;gap:14px;flex-wrap:wrap;margin-top:10px;}
   .btn-whatsapp{background:#25D366;color:#0b3d20;border:none;}
   .btn-whatsapp:hover{background:#1eb856;color:#0b3d20;transform:translateY(-1px);}
 
@@ -156,12 +157,12 @@
   .form-wrap::before{content:"";position:absolute;top:14px;left:14px;right:14px;bottom:14px;border:1px solid #ecdfb8;border-radius:2px;pointer-events:none;}
   .field{margin-bottom:18px;}
   label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);margin-bottom:6px;}
-  input[type=text],input[type=email],input[type=tel],input[type=number],textarea{width:100%;padding:11px 12px;border:1px solid #d8c79a;border-radius:2px;background:#fffef9;font-family:'Work Sans',sans-serif;font-size:14.5px;color:var(--ink);}
+  input[type=text],input[type=email],input[type=tel],input[type=number],textarea{width:100%;padding:11px 12px;border:1px solid #d8c79a;border-radius:2px;background:#fffef9;font-family:'Work Sans',sans-serif;font-size:16px;color:var(--ink);}
   input:focus,textarea:focus,button:focus-visible{outline:2px solid var(--saffron-dark);outline-offset:1px;}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
   .seva-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-top:2px;}
-  .seva-opt{display:flex;align-items:center;gap:9px;font-size:14.5px;text-transform:none;letter-spacing:normal;color:var(--ink);margin-bottom:0;cursor:pointer;font-family:'Work Sans',sans-serif;}
-  .seva-opt input[type=checkbox]{width:17px;height:17px;accent-color:var(--saffron-dark);flex:none;}
+  .seva-opt{display:flex;align-items:center;gap:9px;font-size:14.5px;text-transform:none;letter-spacing:normal;color:var(--ink);margin-bottom:0;cursor:pointer;font-family:'Work Sans',sans-serif;padding:9px 8px;}
+  .seva-opt input[type=checkbox]{width:20px;height:20px;accent-color:var(--saffron-dark);flex:none;}
   .submit-btn{width:100%;padding:14px;font-size:15px;}
   .err{color:var(--vermillion);font-size:12.5px;margin-top:-10px;margin-bottom:14px;display:none;}
   .err.show{display:block;} .field-hint{font-size:12.5px;color:var(--ink-soft);margin-top:6px;}
@@ -184,6 +185,8 @@
     .details-grid div:first-child{border-top:none;padding-top:6px;}
     .row2{grid-template-columns:1fr;}
     .form-wrap{padding:22px;}
+    .cd-unit{min-width:54px;}
+    .cd-row{gap:10px;}
   }
   @media (prefers-reduced-motion: reduce){
     *{transition:none !important;}
