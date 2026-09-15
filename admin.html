@@ -128,7 +128,8 @@
     <div class="card hidden" id="tab-trash"></div>
     <div class="card hidden" id="tab-invite">
       <h3 style="margin-top:0">Send invitation</h3>
-      <p style="color:#8a7a5f;font-size:14px">Sends a plain-text email from <b>contact@legendaryfestival.org</b> &mdash; one message per recipient, so nobody sees the other addresses.</p>
+      <p style="color:#8a7a5f;font-size:14px">Sends a plain-text email from <b>contact@legendaryfestival.org</b> &mdash; either one message per recipient, or a single group email where everyone sees all addresses.</p>
+      <label style="font-size:14px"><input type="checkbox" id="invGroup" style="width:auto" checked> Send as one group email (all recipients visible to each other)</label><br><br>
       <label>Recipients (one per line &mdash; &quot;Name &lt;email&gt;&quot; or just the email)</label>
       <textarea id="invTo" rows="4" placeholder="V. Krishna Patro <vpatro@yahoo.com>&#10;ajsullivan1982@gmail.com"></textarea><br>
       <label>Subject</label>
@@ -231,13 +232,14 @@ async function sendInvite(){
   var message = document.getElementById('invMsg').value;
   if(!to.length){ alert('Add at least one recipient.'); return; }
   if(!subject || !message.trim()){ alert('Subject and message are required.'); return; }
-  if(!confirm('Send this invitation to ' + to.length + ' recipient' + (to.length > 1 ? 's' : '') + ' from contact@legendaryfestival.org?')) return;
+  var group = document.getElementById('invGroup').checked;
+  if(!confirm('Send this invitation to ' + to.length + ' recipient' + (to.length > 1 ? 's' : '') + (group ? ' as ONE group email (everyone sees all addresses)' : ' (one email each)') + ' from contact@legendaryfestival.org?')) return;
   var st = document.getElementById('invStatus'); st.textContent = 'Sending\u2026';
   try {
     var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({action:'sendinvite', to:to, subject:subject, message:message, key:KEY})});
+      body: JSON.stringify({action:'sendinvite', to:to, subject:subject, message:message, group:group, key:KEY})});
     var j = await r.json();
-    if(j.sent){ st.textContent = 'Sent to ' + j.sent + ' recipient' + (j.sent > 1 ? 's' : '') + (j.failed && j.failed.length ? ' (' + j.failed.length + ' failed)' : '') + '.'; document.getElementById('invTo').value = ''; }
+    if(j.sent){ st.textContent = (j.group ? 'Group email sent to ' : 'Sent to ') + j.sent + ' recipient' + (j.sent > 1 ? 's' : '') + (j.failed && j.failed.length ? ' (' + j.failed.length + ' failed)' : '') + '.'; document.getElementById('invTo').value = ''; }
     else { st.textContent = ''; alert('Could not send: ' + (j.error || 'unknown error')); }
   } catch(e){ st.textContent = ''; alert('Send failed: ' + e.message); }
 }
