@@ -60,7 +60,6 @@
   <div id="dash" class="hidden">
     <div class="topbar">
       <h1 style="text-align:left;margin:0">Legendary Dashboard</h1>
-
     </div>
     <div class="card stats" id="stats"></div>
     <div class="tabs">
@@ -137,7 +136,7 @@
       <label>Message</label>
       <textarea id="invMsg" rows="12" placeholder="Hare Krishna, ..."></textarea><br>
       <button onclick="sendInvite()">Send invitation</button>
-      <span id="invStatus" style="margin-left:10px;color:#8a7a5f"></span><hr style="border:none;border-top:1px solid #eee3cc;margin:16px 0"><h3 style="margin-top:0">Delivery status</h3><p style="color:#8a7a5f;font-size:14px;margin-top:0">Latest emails sent from <b>contact@legendaryfestival.org</b>, with their current delivery status.</p><button class="ghost" onclick="loadInviteStatus()">Refresh status</button><span id="invStatusMsg" style="margin-left:10px;color:#8a7a5f"></span><div id="invStatusTable" style="margin-top:10px;overflow-x:auto"></div>
+      <span id="invStatus" style="margin-left:10px;color:#8a7a5f"></span>
     </div>
   </div>
   <div id="emailModal" class="hidden">
@@ -173,7 +172,6 @@ async function unlock(){
   document.getElementById('dash').classList.remove('hidden');
   load();
 }
-
 async function load(){   try {     var r = await fetch(BASE + '?page=admindata', {headers:{'X-Admin-Key': KEY}});     var j = await r.json();     if(!j.ok){ document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Error: ' + esc(j.error || 'Could not load.') + '</div>'; return; }     var s = j.summary;     REG = j.registrations || [];     DON = j.donations || [];     EXP = j.expenses || [];     document.getElementById('stats').innerHTML =       stat(money(s.donations),'Donations (' + s.donationCount + ')') +       stat(s.attendees,'Attendees (' + s.registrations + ' registrations)') +       stat(money(s.expenses),'Expenses') +       stat(money(s.donations - s.expenses),'Net');     document.getElementById('tab-reg').innerHTML = regTable(REG);     document.getElementById('donTable').innerHTML = donTable(DON);     document.getElementById('expTable').innerHTML = expTable(EXP);     TRASH = j.trash || {registrations:[], donations:[], expenses:[]};     document.getElementById('tab-trash').innerHTML = trashHTML();     var tn = (TRASH.registrations||[]).length + (TRASH.donations||[]).length + (TRASH.expenses||[]).length;     document.getElementById('trashTabBtn').textContent = 'Trash' + (tn ? ' (' + tn + ')' : '');   } catch(e) {     document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Connection error: ' + esc(e.message) + '</div>';   } }
 function stat(v,l){ return '<div class="stat card"><div class="v">'+v+'</div><div class="l">'+l+'</div></div>'; }
 function regTable(rows){
@@ -234,7 +232,7 @@ async function sendInvite(){
   if(!subject || !message.trim()){ alert('Subject and message are required.'); return; }
   var group = document.getElementById('invGroup').checked;
   if(!confirm('Send this invitation to ' + to.length + ' recipient' + (to.length > 1 ? 's' : '') + (group ? ' as ONE group email (everyone sees all addresses)' : ' (one email each)') + ' from contact@legendaryfestival.org?')) return;
-  var st = document.getElementById('invStatus'); st.textContent = 'Sending\u2026';
+  var st = document.getElementById('invStatus'); st.textContent = 'Sending…';
   try {
     var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({action:'sendinvite', to:to, subject:subject, message:message, group:group, key:KEY})});
@@ -247,9 +245,9 @@ function showTab(name, el){
   ['reg','don','exp','trash','invite'].forEach(function(t){ document.getElementById('tab-'+t).classList.add('hidden'); });
   document.getElementById('tab-'+name).classList.remove('hidden');
   document.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('active'); });
-  el.classList.add('active'); if(name === 'invite') loadInviteStatus();
+  el.classList.add('active');
 }
-function statusPill(s){ s = String(s || 'sent').toLowerCase().replace(/_/g, ' '); var c = '#8a7a5f', bg = '#f3ecdd'; if(s === 'delivered' || s === 'opened' || s === 'clicked'){ c = '#2e7d32'; bg = '#e6f2e6'; } else if(s === 'bounced' || s === 'complained' || s === 'failed'){ c = '#a33333'; bg = '#f7e6e6'; } return '<span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:13px;color:' + c + ';background:' + bg + '">' + esc(s) + '</span>'; } async function loadInviteStatus(){ var box = document.getElementById('invStatusTable'); var msg = document.getElementById('invStatusMsg'); if(!box) return; msg.textContent = 'Loading…'; box.innerHTML = ''; try { var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'invitestatus', key:KEY})}); var j = await r.json(); msg.textContent = ''; if(!j.ok){ box.innerHTML = '<p style="color:#a33333">Could not load status: ' + esc(j.error || 'unknown error') + '</p>'; return; } if(!j.emails || !j.emails.length){ box.innerHTML = '<p style="color:#8a7a5f">No emails sent yet.</p>'; return; } var h = '<table><tr><th>Date</th><th>To</th><th>Subject</th><th>Status</th></tr>'; j.emails.forEach(function(e){ var to = (e.to || []).join(', '); h += '<tr><td>' + esc(fdate(e.created_at)) + '</td><td>' + esc(to) + '</td><td>' + esc(e.subject) + '</td><td>' + statusPill(e.status) + '</td></tr>'; }); box.innerHTML = h + '</table>'; } catch(e){ msg.textContent = ''; box.innerHTML = '<p style="color:#a33333">Load failed: ' + esc(e.message) + '</p>'; } } function activeTabName(){
+function activeTabName(){
   var tabs = ['reg','don','exp','trash','invite'];
   for(var i=0;i<tabs.length;i++){ if(!document.getElementById('tab-'+tabs[i]).classList.contains('hidden')) return tabs[i]; }
   return 'reg';
@@ -287,12 +285,9 @@ async function viewReceipt(id){
   var b = await r.blob();
   window.open(URL.createObjectURL(b), '_blank');
 }
-// Two-step approval for destructive actions: the first click arms the button
-// (it pulses and reads "Confirm?"); a second click within 6 seconds executes.
-// Clicking anywhere else or waiting disarms it. Guards against accidental taps.
 function disarmBtn(b){ if(!b) return; delete b.dataset.armed; b.classList.remove('armed'); if(b.dataset.label) b.textContent = b.dataset.label; if(b._t){ clearTimeout(b._t); b._t = null; } }
 function armStep(b){
-  if(b.dataset.armed) return true; // second click = confirmed
+  if(b.dataset.armed) return true;
   document.querySelectorAll('button[data-armed]').forEach(disarmBtn);
   b.dataset.armed = '1';
   b.dataset.label = b.textContent;
@@ -325,9 +320,6 @@ async function delReg(btn, id){
     if(j.ok) load(); else { alert(j.error || 'Cancel failed.'); load(); }
   }catch(e){ alert('Connection error: ' + e.message); load(); }
 }
-// ---- Trash: soft-deleted donations/expenses and cancelled registrations.
-// Restore is a single click (non-destructive); Delete forever uses the
-// two-step arm pattern because it is permanent.
 function trashHTML(){
   var tr = TRASH.registrations || [], td = TRASH.donations || [], te = TRASH.expenses || [];
   var h = '<h3 style="margin-top:0">Trash</h3>' +
@@ -344,7 +336,7 @@ function trashHTML(){
   h += '<h4>Deleted donations (' + td.length + ')</h4>';
   if(!td.length) h += '<p style="color:#8a7a5f">None.</p>';
   else {
-    h += '<table><tr><th>Date</th><th>Donor</th><th>Email</th><th>Amount</th><th>Source</th><th></th></tr>';
+    h += '<table><tr><th>Date</th><th>Name</th><th>Email</th><th>Confirmation</th><th></th></tr>';
     td.forEach(function(r){
       h += '<tr><td>'+fdate(r.created_at)+'</td><td>'+esc(r.donor_name)+'</td><td>'+esc(r.email)+'</td><td>'+money(r.amount)+'</td><td>'+esc(r.source||'')+'</td><td style="white-space:nowrap"><button class="small" onclick="restoreDon('+r.id+',this)">Restore</button> <button class="danger" onclick="wipeDon(this,'+r.id+')">Delete forever</button></td></tr>';
     });
@@ -429,7 +421,7 @@ async function sendEmail(){
 document.getElementById('donForm').addEventListener('submit', async function(e){
   e.preventDefault();
   var msg = document.getElementById('donMsg');
-  msg.textContent = 'Saving\u2026'; msg.className = '';
+  msg.textContent = 'Saving…'; msg.className = '';
   var fd = new FormData(e.target);
   var payload = {action:'adddonation', key:KEY};
   fd.forEach(function(v,k){ payload[k] = v; });
@@ -443,7 +435,7 @@ document.getElementById('csvForm').addEventListener('submit', async function(e){
   var msg = document.getElementById('csvMsg');
   var fileInput = document.getElementById('csvFile');
   if(!fileInput.files.length){ msg.textContent = 'Choose a CSV file.'; msg.className='err'; return; }
-  msg.textContent = 'Importing\u2026'; msg.className = '';
+  msg.textContent = 'Importing…'; msg.className = '';
   var fd = new FormData();
   fd.append('action','importdonations'); fd.append('key', KEY);
   fd.append('csvfile', fileInput.files[0]);
