@@ -188,12 +188,19 @@ async function linkDon(id){
   var sel = document.getElementById('linksel-'+id);
   var rid = sel ? sel.value : '';
   if(!rid){ alert('Pick a registration to link this donation to.'); return; }
+  var d = (DON||[]).filter(function(x){ return x.id === id; })[0] || {};
+  var g = (REG||[]).filter(function(x){ return String(x.id) === String(rid); })[0] || {};
+  var who = (g.full_name || ('Registration #' + rid)) + (g.email ? ' <' + g.email + '>' : '');
+  if(!confirm('Link ' + money(d.amount || 0) + ' from ' + (d.donor_name || 'this donor') + ' to ' + who + '?')) return;
   var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({action:'linkdonation', id:id, registration_id:parseInt(rid,10), key:KEY})});
   var j = await r.json();
   if(j.ok) load(); else { alert(j.error || 'Link failed.'); load(); }
 }
 async function unlinkDon(id){
+  var d = (DON||[]).filter(function(x){ return x.id === id; })[0] || {};
+  var who = d.linked_name ? d.linked_name + (d.linked_email ? ' <' + d.linked_email + '>' : '') : 'its registration';
+  if(!confirm('Remove the link of ' + money(d.amount || 0) + ' from ' + (d.donor_name || 'this donor') + ' to ' + who + '?')) return;
   var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({action:'linkdonation', id:id, registration_id:null, key:KEY})});
   var j = await r.json();
