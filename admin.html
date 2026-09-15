@@ -172,9 +172,32 @@ function regTable(rows){
 }
 function donTable(rows){
   if(!rows.length) return '<p style="color:#8a7a5f">No donations yet.</p>';
-  var h = '<table><tr><th>Date</th><th>Donor</th><th>Email</th><th>Amount</th><th>Source</th><th>Matched</th><th>Receipt</th><th></th></tr>';
-  rows.forEach(function(r){ h += '<tr><td>'+fdate(r.created_at)+'</td><td>'+esc(r.donor_name)+'</td><td>'+esc(r.email)+ '</td><td>'+money(r.amount)+'</td><td>'+esc(r.source||'')+'</td><td>'+esc(r.matched)+'</td><td>'+esc(r.receipt_no)+'</td><td><button class="danger" onclick="delDon(this,'+r.id+')">Delete</button></td></tr>'; });
+  var h = '<table><tr><th>Date</th><th>Donor</th><th>Email</th><th>Amount</th><th>Source</th><th>Matched</th><th>Link</th><th>Receipt</th><th></th></tr>';
+  rows.forEach(function(r){ h += '<tr><td>'+fdate(r.created_at)+'</td><td>'+esc(r.donor_name)+'</td><td>'+esc(r.email)+ '</td><td>'+money(r.amount)+'</td><td>'+esc(r.source||'')+'</td><td>'+esc(r.matched)+'</td><td>'+linkCell(r)+'</td><td>'+esc(r.receipt_no)+'</td><td><button class="danger" onclick="delDon(this,'+r.id+')">Delete</button></td></tr>'; });
   return h + '</table>';
+}
+function linkCell(r){
+  if(r.linked_reg_id){
+    return '<span title="'+esc(r.linked_email||'')+'">&rarr; '+esc(r.linked_name||('Registration #'+r.linked_reg_id))+'</span> <button class="small" onclick="unlinkDon('+r.id+')">Unlink</button>';
+  }
+  var opts = '<option value="">—</option>';
+  (REG||[]).forEach(function(g){ opts += '<option value="'+g.id+'">'+esc(g.full_name)+' — '+esc(g.email)+'</option>'; });
+  return '<select id="linksel-'+r.id+'" style="max-width:180px">'+opts+'</select> <button class="small" onclick="linkDon('+r.id+')">Link</button>';
+}
+async function linkDon(id){
+  var sel = document.getElementById('linksel-'+id);
+  var rid = sel ? sel.value : '';
+  if(!rid){ alert('Pick a registration to link this donation to.'); return; }
+  var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({action:'linkdonation', id:id, registration_id:parseInt(rid,10), key:KEY})});
+  var j = await r.json();
+  if(j.ok) load(); else { alert(j.error || 'Link failed.'); load(); }
+}
+async function unlinkDon(id){
+  var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({action:'linkdonation', id:id, registration_id:null, key:KEY})});
+  var j = await r.json();
+  if(j.ok) load(); else { alert(j.error || 'Unlink failed.'); load(); }
 }
 function expTable(rows){
   if(!rows.length) return '<p style="color:#8a7a5f">No expenses yet.</p>';
