@@ -130,7 +130,7 @@
       <h3 style="margin-top:0">Send invitation</h3>
       <p style="color:#8a7a5f;font-size:14px">Sends a plain-text email from <b>contact@legendaryfestival.org</b> &mdash; either one message per recipient, or a single group email where everyone sees all addresses.</p>
       <label style="font-size:14px"><input type="checkbox" id="invGroup" style="width:auto" checked> Send as one group email (all recipients visible to each other)</label><br><br>
-      <label>Recipients (one per line &mdash; &quot;Name &lt;email&gt;&quot; or just the email)</label>
+      <label>Recipients (one per line, or separated by commas &mdash; &quot;Name &lt;email&gt;&quot; or just the email)</label>
       <textarea id="invTo" rows="4" placeholder="V. Krishna Patro <vpatro@yahoo.com>&#10;ajsullivan1982@gmail.com"></textarea><br>
       <label>Subject</label>
       <input id="invSubject" value="You&rsquo;re warmly invited: The Legendary Festival &mdash; Dec 5, 2026"><br>
@@ -227,7 +227,7 @@ function expTable(rows){
   return h + '</table>';
 }
 async function sendInvite(){
-  var to = document.getElementById('invTo').value.split('\n').map(function(x){ return x.trim(); }).filter(function(x){ return x; });
+  var to = document.getElementById('invTo').value.split(/[\n,;]+/).map(function(x){ return x.trim(); }).filter(function(x){ return x; });
   var subject = document.getElementById('invSubject').value.trim();
   var message = document.getElementById('invMsg').value;
   if(!to.length){ alert('Add at least one recipient.'); return; }
