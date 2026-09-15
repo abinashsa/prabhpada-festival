@@ -68,6 +68,7 @@
       <button class="tab" onclick="showTab('don',this)">Donations</button>
       <button class="tab" onclick="showTab('exp',this)">Expenses</button>
       <button class="tab" id="trashTabBtn" onclick="showTab('trash',this)">Trash</button>
+      <button class="tab" onclick="showTab('invite',this)">Invite</button>
       <button class="exportbtn" onclick="exportCSV()">Export CSV</button>
     </div>
     <div class="card" id="tab-reg"></div>
@@ -125,6 +126,18 @@
       <div id="expTable"></div>
     </div>
     <div class="card hidden" id="tab-trash"></div>
+    <div class="card hidden" id="tab-invite">
+      <h3 style="margin-top:0">Send invitation</h3>
+      <p style="color:#8a7a5f;font-size:14px">Sends a plain-text email from <b>contact@legendaryfestival.org</b> &mdash; one message per recipient, so nobody sees the other addresses.</p>
+      <label>Recipients (one per line &mdash; &quot;Name &lt;email&gt;&quot; or just the email)</label>
+      <textarea id="invTo" rows="4" placeholder="V. Krishna Patro <vpatro@yahoo.com>&#10;ajsullivan1982@gmail.com"></textarea><br>
+      <label>Subject</label>
+      <input id="invSubject" value="You&rsquo;re warmly invited: The Legendary Festival &mdash; Dec 5, 2026"><br>
+      <label>Message</label>
+      <textarea id="invMsg" rows="12" placeholder="Hare Krishna, ..."></textarea><br>
+      <button onclick="sendInvite()">Send invitation</button>
+      <span id="invStatus" style="margin-left:10px;color:#8a7a5f"></span>
+    </div>
   </div>
   <div id="emailModal" class="hidden">
     <div class="card">
@@ -212,14 +225,30 @@ function expTable(rows){
   rows.forEach(function(r){ var rc = r.r2_key ? '<button class="ghost" style="padding:4px 10px;font-size:13px" onclick="viewReceipt('+r.id+')">View</button>' : '—'; h += '<tr><td>'+esc(r.date||fdate(r.created_at))+'</td><td>'+esc(r.vendor)+'</td><td>'+esc(r.description)+ '</td><td>'+money(r.amount)+'</td><td>'+esc(r.reference)+'</td><td>'+rc+ '</td><td><button class="danger" onclick="delExp(this,'+r.id+')">Delete</button></td></tr>'; });
   return h + '</table>';
 }
+async function sendInvite(){
+  var to = document.getElementById('invTo').value.split('\n').map(function(x){ return x.trim(); }).filter(function(x){ return x; });
+  var subject = document.getElementById('invSubject').value.trim();
+  var message = document.getElementById('invMsg').value;
+  if(!to.length){ alert('Add at least one recipient.'); return; }
+  if(!subject || !message.trim()){ alert('Subject and message are required.'); return; }
+  if(!confirm('Send this invitation to ' + to.length + ' recipient' + (to.length > 1 ? 's' : '') + ' from contact@legendaryfestival.org?')) return;
+  var st = document.getElementById('invStatus'); st.textContent = 'Sending\u2026';
+  try {
+    var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'sendinvite', to:to, subject:subject, message:message, key:KEY})});
+    var j = await r.json();
+    if(j.sent){ st.textContent = 'Sent to ' + j.sent + ' recipient' + (j.sent > 1 ? 's' : '') + (j.failed && j.failed.length ? ' (' + j.failed.length + ' failed)' : '') + '.'; document.getElementById('invTo').value = ''; }
+    else { st.textContent = ''; alert('Could not send: ' + (j.error || 'unknown error')); }
+  } catch(e){ st.textContent = ''; alert('Send failed: ' + e.message); }
+}
 function showTab(name, el){
-  ['reg','don','exp','trash'].forEach(function(t){ document.getElementById('tab-'+t).classList.add('hidden'); });
+  ['reg','don','exp','trash','invite'].forEach(function(t){ document.getElementById('tab-'+t).classList.add('hidden'); });
   document.getElementById('tab-'+name).classList.remove('hidden');
   document.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('active'); });
   el.classList.add('active');
 }
 function activeTabName(){
-  var tabs = ['reg','don','exp','trash'];
+  var tabs = ['reg','don','exp','trash','invite'];
   for(var i=0;i<tabs.length;i++){ if(!document.getElementById('tab-'+tabs[i]).classList.contains('hidden')) return tabs[i]; }
   return 'reg';
 }
