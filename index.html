@@ -469,6 +469,17 @@
         </div>
       </div>
     </div>
+
+    <div id="closedStage" style="display:none;">
+      <div class="confirm">
+        <div class="mark">✹</div>
+        <h3>Our Hall Is Full</h3>
+        <p style="color:var(--ink-soft);font-size:14.5px;">
+          Thank you for your enthusiasm — all 200 seats for The Legendary Festival are now taken,
+          so registrations are closed. If seats open up, we will share an update here. Hare Krishna!
+        </p>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -644,6 +655,24 @@ const SCRIPT_URL = 'https://festival-api.abinash-a-sahoo.workers.dev/';
 
 function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
+/* When the hall is full, swap the form for a warm "registrations closed" note. */
+function showClosed(){
+  document.getElementById('formStage').style.display='none';
+  document.getElementById('confirmStage').style.display='none';
+  document.getElementById('closedStage').style.display='block';
+  document.querySelectorAll('#register .container > p').forEach(p => p.style.display='none');
+}
+
+/* Ask the backend for the headcount; if we're at capacity, close the form.
+ * Fails open: any error leaves the form usable and the backend still guards. */
+(async function checkCapacity(){
+  try{
+    const res = await fetch(SCRIPT_URL + '?page=capacity');
+    const data = await res.json();
+    if(data && data.full) showClosed();
+  }catch(e){ /* leave the form up */ }
+})();
+
 document.getElementById('regForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const fullName = document.getElementById('fullName').value.trim();
@@ -679,6 +708,13 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
     });
     if(!res.ok) throw new Error('The script responded ' + res.status);
     saved = await res.json();
+    if(saved.error && saved.full){
+      // The hall filled up after the page loaded: show the closed note.
+      submitBtn.textContent = submitLabel;
+      submitBtn.disabled = false;
+      showClosed();
+      return;
+    }
     if(saved.error) throw new Error(saved.error);
     wasUpdate = !!saved.updated;   // the script says whether it replaced a row
   }catch(err){
