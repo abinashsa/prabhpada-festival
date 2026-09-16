@@ -496,7 +496,7 @@
 /*
  * One entry per guest. To add someone, copy a block and fill it in; to show a
  * portrait, drop the file into images/ and point "photo" at it. Until then the
- * card shows an initials medallion rather than a broken frame, so an unfinished
+ * card shows an initials medallion rather than a broken frame, so an unfinished,
  * line-up still looks deliberate.
  */
 const GUESTS = [
@@ -516,6 +516,13 @@ const GUESTS = [
     status: 'confirmed',
     photo: 'images/vishnugada-das.jpg',
     bio: ''
+  },
+  {
+    name: 'HG Mahatma Prabhu',
+    affiliation: 'Tentative',
+    status: 'tentative',
+    photo: 'images/mahatma-prabhu.jpg',
+    bio: ''
   }
 ];
 
@@ -524,7 +531,7 @@ const GUESTS = [
  * confirmed by name. Remove one each time a guest is added above. Raised to 4
  * so the line-up visually reflects the scale of who's being invited.
  */
-const PLACEHOLDERS = 4;
+const PLACEHOLDERS = 3;
 
 function initials(name){
   const parts = name.trim().split(/\s+/);
