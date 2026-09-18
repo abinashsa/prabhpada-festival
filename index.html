@@ -701,6 +701,18 @@ function showClosed(){
   }catch(e){ /* leave the form up */ }
 })();
 
+/* Anonymous visit counter (admin page only): one fire-and-forget ping per
+ * page load. The backend stores only a hash of the visitor's IP — nothing
+ * identifying — and ignores bots. Failures are silent by design. */
+try{
+  fetch(SCRIPT_URL, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({action:'visit'}),
+    keepalive:true
+  }).catch(function(){});
+}catch(e){ /* never break the page for the counter */ }
+
 document.getElementById('regForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const fullName = document.getElementById('fullName').value.trim();
