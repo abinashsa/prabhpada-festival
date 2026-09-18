@@ -411,7 +411,7 @@
       reference number for our records.
     </p>
     <p style="max-width:600px;color:var(--vermillion);font-size:14px;font-weight:500;margin-bottom:22px;">
-      To make sure a seat and a plate of prasadam are waiting for you, we kindly ask every guest to register soon — our hall holds 200 guests in total, and once they're taken, registration will close. It only takes a minute — and it helps us prepare with love.
+      To make sure a seat and a plate of prasadam are waiting for you, we kindly ask every guest to register soon — our hall holds 250 guests in total, and once they're taken, registration will close. It only takes a minute — and it helps us prepare with love.
     </p>
 
     <div id="formStage">
@@ -441,8 +441,13 @@
         </div>
 
         <div class="field">
-          <label for="guestCount">Number Attending (for headcount &amp; prasādam planning)</label>
+          <label for="guestCount">Adults Attending — ages 12 and up (for headcount &amp; prasādam planning)</label>
           <input type="number" id="guestCount" min="1" value="1">
+        </div>
+
+        <div class="field">
+          <label for="childrenCount">Children Under 12 (for prasādam planning)</label>
+          <input type="number" id="childrenCount" min="0" value="0">
         </div>
 
         <div class="field">
@@ -491,7 +496,7 @@
         <div class="mark">✹</div>
         <h3>Our Hall Is Full</h3>
         <p style="color:var(--ink-soft);font-size:14.5px;">
-          Thank you for your enthusiasm — all 200 seats for The Legendary Festival are now taken,
+          Thank you for your enthusiasm — all 250 seats for The Legendary Festival are now taken,
           so registrations are closed. If seats open up, we will share an update here. Hare Krishna!
         </p>
       </div>
@@ -720,6 +725,7 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
   const email = document.getElementById('email').value.trim();
   const phone = document.getElementById('phone').value.trim();
   const guestCount = parseInt(document.getElementById('guestCount').value,10) || 1;
+  const childCount = Math.max(0, parseInt(document.getElementById('childrenCount').value,10) || 0);
   const seva = Array.from(document.querySelectorAll('input[name="seva"]:checked')).map(c=>c.value).join(', ');
   const dietary = document.getElementById('dietary').value.trim();
   const message = document.getElementById('message').value.trim();
@@ -731,7 +737,7 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
   if(!validEmail(email)){ document.getElementById('err-email').classList.add('show'); ok=false; }
   if(!ok) return;
 
-  const entry = { fullName, spiritualName, email, phone, guestCount, seva, dietary, message };
+  const entry = { fullName, spiritualName, email, phone, guestCount, children: childCount, seva, dietary, message };
 
   const submitBtn = e.target.querySelector('.submit-btn');
   const submitLabel = submitBtn.textContent;
@@ -777,13 +783,15 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
    * the form, so an older deployment that omits a field cannot print "undefined".
    */
   const who = fullName.split(/\s+/)[0] || fullName;
-  const seats = guestCount === 1 ? 'one seat' : guestCount + ' seats';
+  const partyTotal = guestCount + childCount;
+  const seats = partyTotal === 1 ? 'one seat' : partyTotal + ' seats';
+  const kidBit = childCount > 0 ? `, including ${childCount} ${childCount === 1 ? 'child' : 'children'} under 12` : '';
 
   document.getElementById('confirmHeading').textContent =
     wasUpdate ? 'Response Updated' : "You're Confirmed";
   document.getElementById('confirmText').textContent = wasUpdate
-    ? `Thanks, ${who}. ${email} had already shared their intent to attend, so we've updated your details — ${seats} now.`
-    : `Thank you, ${who}. We have you down for ${seats}.`;
+    ? `Thanks, ${who}. ${email} had already shared their intent to attend, so we've updated your details — ${seats}${kidBit} now.`
+    : `Thank you, ${who}. We have you down for ${seats}${kidBit}.`;
 
   const mail = document.getElementById('checkMail');
   if(saved.emailed){
