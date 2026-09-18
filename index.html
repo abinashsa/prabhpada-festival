@@ -441,12 +441,12 @@
         </div>
 
         <div class="field">
-          <label for="guestCount">Adults Attending — ages 12 and up (for headcount &amp; prasādam planning)</label>
+          <label for="guestCount">Attending — ages 15 and up (for headcount &amp; prasādam planning)</label>
           <input type="number" id="guestCount" min="1" value="1">
         </div>
 
         <div class="field">
-          <label for="childrenCount">Children Under 12 (for prasādam planning)</label>
+          <label for="childrenCount">Children — ages 14 and below (for prasādam planning)</label>
           <input type="number" id="childrenCount" min="0" value="0">
         </div>
 
@@ -785,7 +785,7 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
   const who = fullName.split(/\s+/)[0] || fullName;
   const partyTotal = guestCount + childCount;
   const seats = partyTotal === 1 ? 'one seat' : partyTotal + ' seats';
-  const kidBit = childCount > 0 ? `, including ${childCount} ${childCount === 1 ? 'child' : 'children'} under 12` : '';
+  const kidBit = childCount > 0 ? `, including ${childCount} ${childCount === 1 ? 'child' : 'children'} aged 14 or below` : '';
 
   document.getElementById('confirmHeading').textContent =
     wasUpdate ? 'Response Updated' : "You're Confirmed";
