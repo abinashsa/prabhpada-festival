@@ -67,7 +67,6 @@
       <button class="tab" onclick="showTab('don',this)">Donations</button>
       <button class="tab" onclick="showTab('exp',this)">Expenses</button>
       <button class="tab" id="trashTabBtn" onclick="showTab('trash',this)">Trash</button>
-      <button class="tab" onclick="showTab('invite',this)">Invite</button>
       <button class="tab" onclick="showTab('email',this)">Email</button>
       <button class="exportbtn" onclick="exportCSV()">Export CSV</button>
     </div>
@@ -126,19 +125,6 @@
       <div id="expTable"></div>
     </div>
     <div class="card hidden" id="tab-trash"></div>
-    <div class="card hidden" id="tab-invite">
-      <h3 style="margin-top:0">Send invitation</h3>
-      <p style="color:#8a7a5f;font-size:14px">Sends a plain-text email from <b>contact@legendaryfestival.org</b> &mdash; either one message per recipient, or a single group email where everyone sees all addresses.</p>
-      <label style="font-size:14px"><input type="checkbox" id="invGroup" style="width:auto" checked> Send as one group email (all recipients visible to each other)</label><br><br>
-      <label>Recipients (one per line, or separated by commas &mdash; &quot;Name &lt;email&gt;&quot; or just the email)</label>
-      <textarea id="invTo" rows="4" placeholder="V. Krishna Patro <vpatro@yahoo.com>&#10;ajsullivan1982@gmail.com"></textarea><br>
-      <label>Subject</label>
-      <input id="invSubject" value="You&rsquo;re warmly invited: The Legendary Festival &mdash; Dec 5, 2026"><br>
-      <label>Message</label>
-      <textarea id="invMsg" rows="12" placeholder="Hare Krishna, ..."></textarea><br>
-      <button onclick="sendInvite()">Send invitation</button>
-      <span id="invStatus" style="margin-left:10px;color:#8a7a5f"></span>
-    </div>
     <div class="card hidden" id="tab-email">
       <h3 style="margin-top:0">Send email</h3>
       <p style="color:#8a7a5f;font-size:14px">Sends from <b>contact@legendaryfestival.org</b> as The Legendary Festival. &ldquo; &mdash; The Legendary Festival&rdquo; is appended to the subject, and the message is signed &ldquo;With gratitude, The Legendary Team&rdquo;.</p>
@@ -238,31 +224,14 @@ function expTable(rows){
   rows.forEach(function(r){ var rc = r.r2_key ? '<button class="ghost" style="padding:4px 10px;font-size:13px" onclick="viewReceipt('+r.id+')">View</button>' : '—'; h += '<tr><td>'+esc(r.date||fdate(r.created_at))+'</td><td>'+esc(r.vendor)+'</td><td>'+esc(r.description)+ '</td><td>'+money(r.amount)+'</td><td>'+esc(r.reference)+'</td><td>'+rc+ '</td><td><button class="danger" onclick="delExp(this,'+r.id+')">Delete</button></td></tr>'; });
   return h + '</table>';
 }
-async function sendInvite(){
-  var to = document.getElementById('invTo').value.split(/[\n,;]+/).map(function(x){ return x.trim(); }).filter(function(x){ return x; });
-  var subject = document.getElementById('invSubject').value.trim();
-  var message = document.getElementById('invMsg').value;
-  if(!to.length){ alert('Add at least one recipient.'); return; }
-  if(!subject || !message.trim()){ alert('Subject and message are required.'); return; }
-  var group = document.getElementById('invGroup').checked;
-  if(!confirm('Send this invitation to ' + to.length + ' recipient' + (to.length > 1 ? 's' : '') + (group ? ' as ONE group email (everyone sees all addresses)' : ' (one email each)') + ' from contact@legendaryfestival.org?')) return;
-  var st = document.getElementById('invStatus'); st.textContent = 'Sending…';
-  try {
-    var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({action:'sendinvite', to:to, subject:subject, message:message, group:group, key:KEY})});
-    var j = await r.json();
-    if(j.sent){ st.textContent = (j.group ? 'Group email sent to ' : 'Sent to ') + j.sent + ' recipient' + (j.sent > 1 ? 's' : '') + (j.failed && j.failed.length ? ' (' + j.failed.length + ' failed)' : '') + '.'; document.getElementById('invTo').value = ''; }
-    else { st.textContent = ''; alert('Could not send: ' + (j.error || 'unknown error')); }
-  } catch(e){ st.textContent = ''; alert('Send failed: ' + e.message); }
-}
 function showTab(name, el){
-  ['reg','don','exp','trash','invite','email'].forEach(function(t){ document.getElementById('tab-'+t).classList.add('hidden'); });
+  ['reg','don','exp','trash','email'].forEach(function(t){ document.getElementById('tab-'+t).classList.add('hidden'); });
   document.getElementById('tab-'+name).classList.remove('hidden');
   document.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('active'); });
   el.classList.add('active');
 }
 function activeTabName(){
-  var tabs = ['reg','don','exp','trash','invite','email'];
+  var tabs = ['reg','don','exp','trash','email'];
   for(var i=0;i<tabs.length;i++){ if(!document.getElementById('tab-'+tabs[i]).classList.contains('hidden')) return tabs[i]; }
   return 'reg';
 }
