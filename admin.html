@@ -68,6 +68,7 @@
       <button class="tab" onclick="showTab('exp',this)">Expenses</button>
       <button class="tab" id="trashTabBtn" onclick="showTab('trash',this)">Trash</button>
       <button class="tab" onclick="showTab('invite',this)">Invite</button>
+      <button class="tab" onclick="showTab('email',this)">Email</button>
       <button class="exportbtn" onclick="exportCSV()">Export CSV</button>
     </div>
     <div class="card" id="tab-reg"></div>
@@ -138,6 +139,18 @@
       <button onclick="sendInvite()">Send invitation</button>
       <span id="invStatus" style="margin-left:10px;color:#8a7a5f"></span>
     </div>
+    <div class="card hidden" id="tab-email">
+      <h3 style="margin-top:0">Send email</h3>
+      <p style="color:#8a7a5f;font-size:14px">Sends from <b>contact@legendaryfestival.org</b> as The Legendary Festival. &ldquo; &mdash; The Legendary Festival&rdquo; is appended to the subject, and the message is signed &ldquo;With gratitude, The Legendary Team&rdquo;.</p>
+      <label>To</label>
+      <input id="cemTo" type="email" placeholder="name@example.com"><br>
+      <label>Subject</label>
+      <input id="cemSubject" placeholder="Subject"><br>
+      <label>Message</label>
+      <textarea id="cemMsg" rows="10" placeholder="Hare Krishna, ..."></textarea><br>
+      <button onclick="sendTabEmail()">Send email</button>
+      <span id="cemStatus" style="margin-left:10px;color:#8a7a5f"></span>
+    </div>
   </div>
   <div id="emailModal" class="hidden">
     <div class="card">
@@ -171,6 +184,7 @@ async function unlock(){
   document.getElementById('gate').classList.add('hidden');
   document.getElementById('dash').classList.remove('hidden');
   load();
+  prefillEmailTab();
 }
 async function load(){   try {     var r = await fetch(BASE + '?page=admindata', {headers:{'X-Admin-Key': KEY}});     var j = await r.json();     if(!j.ok){ document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Error: ' + esc(j.error || 'Could not load.') + '</div>'; return; }     var s = j.summary;     REG = j.registrations || [];     DON = j.donations || [];     EXP = j.expenses || [];     document.getElementById('stats').innerHTML =       stat(money(s.donations),'Donations (' + s.donationCount + ')') +       stat(s.attendees,'Attendees (' + s.registrations + ' registrations \u00b7 ' + (s.kids||0) + ' kids)') +       stat(money(s.expenses),'Expenses') +       stat(money(s.donations - s.expenses),'Net') + stat(s.visitorTotal || 0,'Unique visitors \u00b7 today ' + (s.visitorToday || 0) + ' \u00b7 7-day ' + (s.visitorWeek || 0));     document.getElementById('tab-reg').innerHTML = regTable(REG);     document.getElementById('donTable').innerHTML = donTable(DON);     document.getElementById('expTable').innerHTML = expTable(EXP);     TRASH = j.trash || {registrations:[], donations:[], expenses:[]};     document.getElementById('tab-trash').innerHTML = trashHTML();     var tn = (TRASH.registrations||[]).length + (TRASH.donations||[]).length + (TRASH.expenses||[]).length;     document.getElementById('trashTabBtn').textContent = 'Trash' + (tn ? ' (' + tn + ')' : '');   } catch(e) {     document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Connection error: ' + esc(e.message) + '</div>';   } }
 function stat(v,l){ return '<div class="stat card"><div class="v">'+v+'</div><div class="l">'+l+'</div></div>'; }
@@ -242,13 +256,13 @@ async function sendInvite(){
   } catch(e){ st.textContent = ''; alert('Send failed: ' + e.message); }
 }
 function showTab(name, el){
-  ['reg','don','exp','trash','invite'].forEach(function(t){ document.getElementById('tab-'+t).classList.add('hidden'); });
+  ['reg','don','exp','trash','invite','email'].forEach(function(t){ document.getElementById('tab-'+t).classList.add('hidden'); });
   document.getElementById('tab-'+name).classList.remove('hidden');
   document.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('active'); });
   el.classList.add('active');
 }
 function activeTabName(){
-  var tabs = ['reg','don','exp','trash','invite'];
+  var tabs = ['reg','don','exp','trash','invite','email'];
   for(var i=0;i<tabs.length;i++){ if(!document.getElementById('tab-'+tabs[i]).classList.contains('hidden')) return tabs[i]; }
   return 'reg';
 }
@@ -404,6 +418,35 @@ function openEmail(id){
   document.getElementById('emailModal').classList.remove('hidden');
 }
 function closeEmail(){ document.getElementById('emailModal').classList.add('hidden'); }
+async function sendTabEmail(){
+  var st = document.getElementById('cemStatus');
+  var to = document.getElementById('cemTo').value.trim();
+  var subject = document.getElementById('cemSubject').value.trim();
+  var message = document.getElementById('cemMsg').value;
+  if(!to || !subject || !message.trim()){ st.textContent = 'To, subject, and message are all required.'; return; }
+  if(!confirm('Send this email to ' + to + ' from contact@legendaryfestival.org?')) return;
+  st.textContent = 'Sending\u2026';
+  try{
+    var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'sendemail', key:KEY, to:to, subject:subject, message:message})});
+    var j = await r.json();
+    if(j.ok){ st.textContent = 'Email sent.'; }
+    else { st.textContent = j.error || 'Send failed.'; }
+  }catch(e){ st.textContent = 'Connection error: ' + e.message; }
+}
+function prefillEmailTab(){
+  try{
+    var q = new URLSearchParams(location.search);
+    var to = q.get('eto'), subj = q.get('esubject'), m = q.get('emessage');
+    if(to || subj || m){
+      if(to) document.getElementById('cemTo').value = to;
+      if(subj) document.getElementById('cemSubject').value = subj;
+      if(m) document.getElementById('cemMsg').value = m;
+      var tabs = document.querySelectorAll('.tab');
+      showTab('email', tabs[tabs.length-1]);
+      history.replaceState(null, '', location.pathname);
+    }
+  }catch(e){}
+}
 async function sendEmail(){
   var st = document.getElementById('emStatus');
   var to = document.getElementById('emTo').value;
