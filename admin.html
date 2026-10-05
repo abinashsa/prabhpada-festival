@@ -409,7 +409,11 @@ async function sendBlast(){
     var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({action:'sendinvite', key:KEY, to:to, subject:subject, message:message, group:false})});
     var j = await r.json();
-    if(j.sent){ st.textContent = 'Sent to ' + j.sent + ' recipient' + (j.sent > 1 ? 's' : '') + ((j.failed && j.failed.length) ? ' (' + j.failed.length + ' failed)' : '') + '.'; }
+    if(j.sent || (j.failed && j.failed.length)){
+      var t = 'Sent to ' + (j.sent || 0) + ' recipient' + ((j.sent || 0) !== 1 ? 's' : '') + '.';
+      if(j.failed && j.failed.length){ t += ' Failed (' + j.failed.length + '): ' + j.failed.join(', '); }
+      st.textContent = t;
+    }
     else { st.textContent = ''; alert('Could not send: ' + (j.error || 'unknown error')); }
   }catch(e){ st.textContent = ''; alert('Send failed: ' + e.message); }
 }
