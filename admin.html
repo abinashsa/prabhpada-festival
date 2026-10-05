@@ -130,6 +130,7 @@
       <p style="color:#8a7a5f;font-size:14px">Sends from <b>contact@legendaryfestival.org</b> as The Legendary Festival. &ldquo; &mdash; The Legendary Festival&rdquo; is appended to the subject, and the message is signed &ldquo;With gratitude, The Legendary Team&rdquo;.</p>
       <label>To</label>
       <input id="cemTo" type="email" placeholder="name@example.com"><br>
+      <div style="margin:6px 0"><button class="small" onclick="loadVenueBlast()">&#8635; Load venue announcement</button></div>
       <label>Subject</label>
       <input id="cemSubject" placeholder="Subject"><br>
       <label>Message</label>
@@ -436,7 +437,7 @@ async function findMissing(){
     (j.recipients || []).forEach(function(e){ got[String(e).toLowerCase()] = true; });
     MISSING = confirmedRegs().filter(function(x){ return x.email && !got[x.email.toLowerCase()]; });
     if(!MISSING.length){ st.textContent = 'Everyone got it \u2014 no one missed the blast.'; return; }
-    st.textContent = MISSING.length + ' missed it.';
+    st.textContent = MISSING.length + ' missed it (checked ' + (j.scanned || '?') + ' sent emails).';
     listEl.innerHTML = '<div style="margin-bottom:8px">' + MISSING.map(function(x){ return esc(x.full_name) + ' &lt;' + esc(x.email) + '&gt;'; }).join('<br>') + '</div>' +
       '<button onclick="resendMissing()">Send to these ' + MISSING.length + ' only</button> <span id="resendStatus" style="margin-left:10px;color:#8a7a5f"></span>';
   }catch(e){ st.textContent = ''; alert('Check failed: ' + e.message); }
@@ -475,8 +476,32 @@ async function sendTabEmail(){
     else { st.textContent = j.error || 'Send failed.'; }
   }catch(e){ st.textContent = 'Connection error: ' + e.message; }
 }
-function prefillEmailTab(){
-  try{
+function loadVenueBlast(){
+  document.getElementById('cemSubject').value = 'Venue confirmed: The Pilot School, Wilmington, DE \u2014 The Legendary Festival';
+  document.getElementById('cemMsg').value =
+'Hare Krishna,\n' +
+'\n' +
+'Please accept our respectful obeisances. All glories to Srila Prabhupada!\n' +
+'\n' +
+'We tried hard to find a nice venue in West Chester, Pennsylvania for The Legendary Festival, but we could not secure a suitable place for our gathering.\n' +
+'\n' +
+'We are delighted to share that we have now booked The Pilot School \u2014 just 10 miles south of West Chester, right across the Delaware border:\n' +
+'\n' +
+'\uD83D\uDCCD The Pilot School\n' +
+'208 Woodlawn Rd, Wilmington, Delaware\n' +
+'\n' +
+'Get directions here:\n' +
+'https://www.google.com/maps/search/?api=1&query=The+Pilot+School,+208+Woodlawn+Rd,+Wilmington,+DE\n' +
+'\n' +
+'Join us on Saturday, December 5, 10:00 AM \u2013 9:00 PM, for a full day of soulful kirtan, enlightening discourses, and delicious prasadam, celebrating 130 years of Srila Prabhupada.\n' +
+'\n' +
+'Thank you for registering \u2014 we can\u2019t wait to welcome you!\n' +
+'\n' +
+'With gratitude,\n' +
+'The Legendary Team\n' +
+'contact@legendaryfestival.org';
+}
+function prefillEmailTab(){  try{
     var q = new URLSearchParams(location.search);
     var to = q.get('eto'), subj = q.get('esubject'), m = q.get('emessage');
     if(to || subj || m){
