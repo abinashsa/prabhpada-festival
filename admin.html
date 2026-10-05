@@ -141,6 +141,11 @@
       <p style="color:#8a7a5f;font-size:14px">Sends the <b>subject and message above</b> as one email per recipient to every confirmed registrant (<span id="blastCount">&hellip;</span>). The subject and message go exactly as written &mdash; include your own sign-off.</p>
       <button onclick="sendBlast()">Send to all confirmed registrants</button>
       <span id="blastStatus" style="margin-left:10px;color:#8a7a5f"></span>
+      <div style="margin-top:12px">
+        <button onclick="findMissing()">Check who missed the blast</button>
+        <span id="missingStatus" style="margin-left:10px;color:#8a7a5f"></span>
+        <div id="missingList" style="margin-top:8px;font-size:14px"></div>
+      </div>
     </div>
   </div>
   <div id="emailModal" class="hidden">
@@ -415,6 +420,44 @@ async function sendBlast(){
       st.textContent = t;
     }
     else { st.textContent = ''; alert('Could not send: ' + (j.error || 'unknown error')); }
+  }catch(e){ st.textContent = ''; alert('Send failed: ' + e.message); }
+}
+var MISSING = [];
+async function findMissing(){
+  var st = document.getElementById('missingStatus');
+  var listEl = document.getElementById('missingList');
+  st.textContent = 'Checking\u2026'; listEl.innerHTML = ''; MISSING = [];
+  try{
+    var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'blastrecipients', key:KEY, since:'2026-10-05T14:00:00Z', subject:'Venue confirmed'})});
+    var j = await r.json();
+    if(!j.ok){ st.textContent = ''; alert('Could not check: ' + (j.error || 'unknown error')); return; }
+    var got = {};
+    (j.recipients || []).forEach(function(e){ got[String(e).toLowerCase()] = true; });
+    MISSING = confirmedRegs().filter(function(x){ return x.email && !got[x.email.toLowerCase()]; });
+    if(!MISSING.length){ st.textContent = 'Everyone got it \u2014 no one missed the blast.'; return; }
+    st.textContent = MISSING.length + ' missed it.';
+    listEl.innerHTML = '<div style="margin-bottom:8px">' + MISSING.map(function(x){ return esc(x.full_name) + ' &lt;' + esc(x.email) + '&gt;'; }).join('<br>') + '</div>' +
+      '<button onclick="resendMissing()">Send to these ' + MISSING.length + ' only</button> <span id="resendStatus" style="margin-left:10px;color:#8a7a5f"></span>';
+  }catch(e){ st.textContent = ''; alert('Check failed: ' + e.message); }
+}
+async function resendMissing(){
+  var st = document.getElementById('resendStatus');
+  var subject = document.getElementById('cemSubject').value.trim();
+  var message = document.getElementById('cemMsg').value;
+  if(!MISSING.length) return;
+  if(!subject || !message.trim()){ alert('Fill in the subject and message above first.'); return; }
+  if(!confirm('Send this email to the ' + MISSING.length + ' registrants who missed it (one email each)?')) return;
+  st.textContent = 'Sending\u2026';
+  try{
+    var to = MISSING.map(function(x){ return (x.full_name ? x.full_name + ' ' : '') + '<' + x.email + '>'; });
+    var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'sendinvite', key:KEY, to:to, subject:subject, message:message, group:false})});
+    var j = await r.json();
+    var t = 'Sent to ' + (j.sent || 0) + '.';
+    if(j.failed && j.failed.length){ t += ' Failed (' + j.failed.length + '): ' + j.failed.join(', '); }
+    else { MISSING = []; }
+    st.textContent = t;
   }catch(e){ st.textContent = ''; alert('Send failed: ' + e.message); }
 }
 async function sendTabEmail(){
