@@ -136,6 +136,11 @@
       <textarea id="cemMsg" rows="10" placeholder="Hare Krishna, ..."></textarea><br>
       <button onclick="sendTabEmail()">Send email</button>
       <span id="cemStatus" style="margin-left:10px;color:#8a7a5f"></span>
+      <hr style="border:none;border-top:1px solid #eee3cc;margin:16px 0">
+      <h3 style="margin-top:0">Blast to all registrants</h3>
+      <p style="color:#8a7a5f;font-size:14px">Sends the <b>subject and message above</b> as one email per recipient to every confirmed registrant (<span id="blastCount">&hellip;</span>). The subject and message go exactly as written &mdash; include your own sign-off.</p>
+      <button onclick="sendBlast()">Send to all confirmed registrants</button>
+      <span id="blastStatus" style="margin-left:10px;color:#8a7a5f"></span>
     </div>
   </div>
   <div id="emailModal" class="hidden">
@@ -172,7 +177,8 @@ async function unlock(){
   load();
   prefillEmailTab();
 }
-async function load(){   try {     var r = await fetch(BASE + '?page=admindata', {headers:{'X-Admin-Key': KEY}});     var j = await r.json();     if(!j.ok){ document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Error: ' + esc(j.error || 'Could not load.') + '</div>'; return; }     var s = j.summary;     REG = j.registrations || [];     DON = j.donations || [];     EXP = j.expenses || [];     document.getElementById('stats').innerHTML =       stat(money(s.donations),'Donations (' + s.donationCount + ')') +       stat(s.attendees,'Attendees') +       stat(money(s.expenses),'Expenses') +       stat(money(s.donations - s.expenses),'Net') + stat(s.visitorTotal || 0,'Unique visitors \u00b7 today ' + (s.visitorToday || 0) + ' \u00b7 7-day ' + (s.visitorWeek || 0));     document.getElementById('tab-reg').innerHTML = regTable(REG);     document.getElementById('donTable').innerHTML = donTable(DON);     document.getElementById('expTable').innerHTML = expTable(EXP);     TRASH = j.trash || {registrations:[], donations:[], expenses:[]};     document.getElementById('tab-trash').innerHTML = trashHTML();     var tn = (TRASH.registrations||[]).length + (TRASH.donations||[]).length + (TRASH.expenses||[]).length;     document.getElementById('trashTabBtn').textContent = 'Trash' + (tn ? ' (' + tn + ')' : '');   } catch(e) {     document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Connection error: ' + esc(e.message) + '</div>';   } }
+async function load(){   try {     var r = await fetch(BASE + '?page=admindata', {headers:{'X-Admin-Key': KEY}});     var j = await r.json();     if(!j.ok){ document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Error: ' + esc(j.error || 'Could not load.') + '</div>'; return; }     var s = j.summary;     REG = j.registrations || [];     DON = j.donations || [];     EXP = j.expenses || [];     document.getElementById('stats').innerHTML =       stat(money(s.donations),'Donations (' + s.donationCount + ')') +       stat(s.attendees,'Attendees') +       stat(money(s.expenses),'Expenses') +       stat(money(s.donations - s.expenses),'Net') + stat(s.visitorTotal || 0,'Unique visitors \u00b7 today ' + (s.visitorToday || 0) + ' \u00b7 7-day ' + (s.visitorWeek || 0));     document.getElementById('tab-reg').innerHTML = regTable(REG);     document.getElementById('donTable').innerHTML = donTable(DON);     document.getElementById('expTable').innerHTML = expTable(EXP);     TRASH = j.trash || {registrations:[], donations:[], expenses:[]};     document.getElementById('tab-trash').innerHTML = trashHTML();
+     refreshBlastCount();     var tn = (TRASH.registrations||[]).length + (TRASH.donations||[]).length + (TRASH.expenses||[]).length;     document.getElementById('trashTabBtn').textContent = 'Trash' + (tn ? ' (' + tn + ')' : '');   } catch(e) {     document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Connection error: ' + esc(e.message) + '</div>';   } }
 function stat(v,l){ return '<div class="stat card"><div class="v">'+v+'</div><div class="l">'+l+'</div></div>'; }
 function regTable(rows){
   if(!rows.length) return '<p style="color:#8a7a5f">No registrations yet.</p>';
@@ -387,6 +393,26 @@ function openEmail(id){
   document.getElementById('emailModal').classList.remove('hidden');
 }
 function closeEmail(){ document.getElementById('emailModal').classList.add('hidden'); }
+function confirmedRegs(){ return (REG||[]).filter(function(r){ return r.status === 'Confirmed' && r.email; }); }
+function refreshBlastCount(){ var el = document.getElementById('blastCount'); if(el) el.textContent = confirmedRegs().length + ' right now'; }
+async function sendBlast(){
+  var regs = confirmedRegs();
+  var subject = document.getElementById('cemSubject').value.trim();
+  var message = document.getElementById('cemMsg').value;
+  if(!regs.length){ alert('No confirmed registrants found.'); return; }
+  if(regs.length > 50){ alert('Too many recipients (' + regs.length + '); the sender allows 50 per blast.'); return; }
+  if(!subject || !message.trim()){ alert('Fill in the subject and message above first.'); return; }
+  if(!confirm('Send this email to ' + regs.length + ' confirmed registrants (one email each) from contact@legendaryfestival.org?')) return;
+  var st = document.getElementById('blastStatus'); st.textContent = 'Sending\u2026';
+  try{
+    var to = regs.map(function(r){ return (r.full_name ? r.full_name + ' ' : '') + '<' + r.email + '>'; });
+    var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'sendinvite', key:KEY, to:to, subject:subject, message:message, group:false})});
+    var j = await r.json();
+    if(j.sent){ st.textContent = 'Sent to ' + j.sent + ' recipient' + (j.sent > 1 ? 's' : '') + ((j.failed && j.failed.length) ? ' (' + j.failed.length + ' failed)' : '') + '.'; }
+    else { st.textContent = ''; alert('Could not send: ' + (j.error || 'unknown error')); }
+  }catch(e){ st.textContent = ''; alert('Send failed: ' + e.message); }
+}
 async function sendTabEmail(){
   var st = document.getElementById('cemStatus');
   var to = document.getElementById('cemTo').value.trim();
