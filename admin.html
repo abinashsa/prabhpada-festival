@@ -116,6 +116,9 @@
         </div>
         <div class="row">
           <input name="reference" placeholder="Reference (order/policy #)">
+          <input name="payer" placeholder="Paid by (name)">
+        </div>
+        <div class="row">
           <input name="receipt" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp">
         </div>
         <button type="submit">Save expense</button>
@@ -232,8 +235,8 @@ async function unlinkDon(id){
 }
 function expTable(rows){
   if(!rows.length) return '<p style="color:#8a7a5f">No expenses yet.</p>';
-  var h = '<table><tr><th>Date</th><th>Vendor</th><th>Description</th><th>Amount</th><th>Reference</th><th>Receipt</th><th></th></tr>';
-  rows.forEach(function(r){ var rc = r.r2_key ? '<button class="ghost" style="padding:4px 10px;font-size:13px" onclick="viewReceipt('+r.id+')">View</button>' : '—'; h += '<tr><td>'+esc(r.date||fdate(r.created_at))+'</td><td>'+esc(r.vendor)+'</td><td>'+esc(r.description)+ '</td><td>'+money(r.amount)+'</td><td>'+esc(r.reference)+'</td><td>'+rc+ '</td><td><button class="danger" onclick="delExp(this,'+r.id+')">Delete</button></td></tr>'; });
+  var h = '<table><tr><th>Date</th><th>Vendor</th><th>Description</th><th>Amount</th><th>Paid by</th><th>Reference</th><th>Receipt</th><th></th></tr>';
+  rows.forEach(function(r){ var rc = r.r2_key ? '<button class="ghost" style="padding:4px 10px;font-size:13px" onclick="viewReceipt('+r.id+')">View</button>' : '—'; h += '<tr><td>'+esc(r.date||fdate(r.created_at))+'</td><td>'+esc(r.vendor)+'</td><td>'+esc(r.description)+ '</td><td>'+money(r.amount)+'</td><td>'+esc(r.payer || '')+'</td><td>'+esc(r.reference)+'</td><td>'+rc+ '</td><td><button class="danger" onclick="delExp(this,'+r.id+')">Delete</button></td></tr>'; });
   return h + '</table>';
 }
 function showTab(name, el){
@@ -340,10 +343,10 @@ function trashHTML(){
   h += '<h4>Deleted expenses (' + te.length + ')</h4>';
   if(!te.length) h += '<p style="color:#8a7a5f">None.</p>';
   else {
-    h += '<table><tr><th>Date</th><th>Vendor</th><th>Description</th><th>Amount</th><th>Receipt</th><th></th></tr>';
+    h += '<table><tr><th>Date</th><th>Vendor</th><th>Description</th><th>Amount</th><th>Paid by</th><th>Receipt</th><th></th></tr>';
     te.forEach(function(r){
       var rc = r.r2_key ? '<button class="ghost" style="padding:4px 10px;font-size:13px" onclick="viewReceipt('+r.id+')">View</button>' : '—';
-      h += '<tr><td>'+esc(r.date||fdate(r.created_at))+'</td><td>'+esc(r.vendor)+'</td><td>'+esc(r.description)+'</td><td>'+money(r.amount)+'</td><td>'+rc+'</td><td style="white-space:nowrap"><button class="small" onclick="restoreExp('+r.id+',this)">Restore</button> <button class="danger" onclick="wipeExp(this,'+r.id+')">Delete forever</button></td></tr>';
+      h += '<tr><td>'+esc(r.date||fdate(r.created_at))+'</td><td>'+esc(r.vendor)+'</td><td>'+esc(r.description)+'</td><td>'+money(r.amount)+'</td><td>'+esc(r.payer || '')+'</td><td>'+rc+'</td><td style="white-space:nowrap"><button class="small" onclick="restoreExp('+r.id+',this)">Restore</button> <button class="danger" onclick="wipeExp(this,'+r.id+')">Delete forever</button></td></tr>';
     });
     h += '</table>';
   }
