@@ -126,6 +126,22 @@
       </form>
       <hr style="border:none;border-top:1px solid #eee3cc;margin:16px 0">
       <div id="expTable"></div>
+      <hr style="border:none;border-top:1px solid #eee3cc;margin:16px 0">
+      <div id="payerSummary"></div>
+      <h3>Reimbursements</h3>
+      <form id="reimbForm">
+        <div class="row">
+          <input name="date" type="date" required>
+          <input name="person" placeholder="Received by (name)" required>
+        </div>
+        <div class="row">
+          <input name="amount" type="number" step="0.01" min="0" placeholder="Amount (USD)" required>
+          <input name="note" placeholder="Note (e.g. Zelle from Camp Spark Inc.)">
+        </div>
+        <button type="submit">Save reimbursement</button>
+        <span id="reimbMsg" style="margin-left:10px"></span>
+      </form>
+      <div id="reimbTable" style="margin-top:12px"></div>
     </div>
     <div class="card hidden" id="tab-trash"></div>
     <div class="card hidden" id="tab-email">
@@ -169,8 +185,8 @@
 <script>
 var KEY = '';
 var BASE = 'https://festival-api.abinash-a-sahoo.workers.dev/';
-var REG = [], DON = [], EXP = [];
-var TRASH = {registrations:[], donations:[], expenses:[]};
+var REG = [], DON = [], EXP = [], REIMB = [];
+var TRASH = {registrations:[], donations:[], expenses:[], reimbursements:[]};
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function money(n){ return '$' + (parseFloat(n)||0).toFixed(2); }
 function fdate(s){ if(!s) return ''; try{ return new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }catch(e){ return s; } }
@@ -186,7 +202,7 @@ async function unlock(){
   load();
   prefillEmailTab();
 }
-async function load(){   try {     var r = await fetch(BASE + '?page=admindata', {headers:{'X-Admin-Key': KEY}});     var j = await r.json();     if(!j.ok){ document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Error: ' + esc(j.error || 'Could not load.') + '</div>'; return; }     var s = j.summary;     REG = j.registrations || [];     DON = j.donations || [];     EXP = j.expenses || [];     document.getElementById('stats').innerHTML =       stat(money(s.donations),'Donations (' + s.donationCount + ')') +       stat(s.attendees,'Attendees') +       stat(money(s.expenses),'Expenses') +       stat(money(s.donations - s.expenses),'Net') + stat(s.visitorTotal || 0,'Unique visitors \u00b7 today ' + (s.visitorToday || 0) + ' \u00b7 7-day ' + (s.visitorWeek || 0));     document.getElementById('tab-reg').innerHTML = regTable(REG);     document.getElementById('donTable').innerHTML = donTable(DON);     document.getElementById('expTable').innerHTML = expTable(EXP);     TRASH = j.trash || {registrations:[], donations:[], expenses:[]};     document.getElementById('tab-trash').innerHTML = trashHTML();
+async function load(){   try {     var r = await fetch(BASE + '?page=admindata', {headers:{'X-Admin-Key': KEY}});     var j = await r.json();     if(!j.ok){ document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Error: ' + esc(j.error || 'Could not load.') + '</div>'; return; }     var s = j.summary;     REG = j.registrations || [];     DON = j.donations || [];     EXP = j.expenses || [];     REIMB = j.reimbursements || [];     document.getElementById('stats').innerHTML =       stat(money(s.donations),'Donations (' + s.donationCount + ')') +       stat(s.attendees,'Attendees') +       stat(money(s.expenses),'Expenses') +       stat(money(s.reimbursements || 0),'Reimbursements') +       stat(money(s.donations - s.expenses),'Net') + stat(s.visitorTotal || 0,'Unique visitors \u00b7 today ' + (s.visitorToday || 0) + ' \u00b7 7-day ' + (s.visitorWeek || 0));     document.getElementById('tab-reg').innerHTML = regTable(REG);     document.getElementById('donTable').innerHTML = donTable(DON);     document.getElementById('expTable').innerHTML = expTable(EXP);     document.getElementById('payerSummary').innerHTML = payerSummary(EXP, REIMB);     document.getElementById('reimbTable').innerHTML = reimbTable(REIMB);     TRASH = j.trash || {registrations:[], donations:[], expenses:[], reimbursements:[]};     document.getElementById('tab-trash').innerHTML = trashHTML();
      refreshBlastCount();     var tn = (TRASH.registrations||[]).length + (TRASH.donations||[]).length + (TRASH.expenses||[]).length;     document.getElementById('trashTabBtn').textContent = 'Trash' + (tn ? ' (' + tn + ')' : '');   } catch(e) {     document.getElementById('stats').innerHTML = '<div class="card" style="color:#a00">Connection error: ' + esc(e.message) + '</div>';   } }
 function stat(v,l){ return '<div class="stat card"><div class="v">'+v+'</div><div class="l">'+l+'</div></div>'; }
 function regTable(rows){
@@ -238,6 +254,34 @@ function expTable(rows){
   var h = '<table><tr><th>Date</th><th>Vendor</th><th>Description</th><th>Amount</th><th>Paid by</th><th>Reference</th><th>Receipt</th><th></th></tr>';
   rows.forEach(function(r){ var rc = r.r2_key ? '<button class="ghost" style="padding:4px 10px;font-size:13px" onclick="viewReceipt('+r.id+')">View</button>' : '—'; h += '<tr><td>'+esc(r.date||fdate(r.created_at))+'</td><td>'+esc(r.vendor)+'</td><td>'+esc(r.description)+ '</td><td>'+money(r.amount)+'</td><td>'+esc(r.payer || '')+'</td><td>'+esc(r.reference)+'</td><td>'+rc+ '</td><td><button class="danger" onclick="delExp(this,'+r.id+')">Delete</button></td></tr>'; });
   return h + '</table>';
+}
+function payerSummary(expenses, reimbs){
+  var paid = {}, got = {}, names = {};
+  expenses.forEach(function(r){ var p = (r.payer || '').trim(); if(!p) return; var k = p.toLowerCase(); paid[k] = (paid[k] || 0) + (parseFloat(r.amount) || 0); names[k] = p; });
+  reimbs.forEach(function(r){ var p = (r.person || '').trim(); if(!p) return; var k = p.toLowerCase(); got[k] = (got[k] || 0) + (parseFloat(r.amount) || 0); if(!names[k]) names[k] = p; });
+  var keys = Object.keys(names);
+  if(!keys.length) return '';
+  var h = '<h3 style="margin-top:0">Who paid what</h3><table><tr><th>Paid by</th><th>Expenses paid</th><th>Reimbursed</th><th>Still out of pocket</th></tr>';
+  keys.sort().forEach(function(k){
+    var p = paid[k] || 0, g = got[k] || 0;
+    h += '<tr><td>'+esc(names[k])+'</td><td>'+money(p)+'</td><td>'+money(g)+'</td><td>'+money(p - g)+'</td></tr>';
+  });
+  return h + '</table>';
+}
+function reimbTable(rows){
+  if(!rows.length) return '<p style="color:#8a7a5f">No reimbursements recorded yet.</p>';
+  var h = '<table><tr><th>Date</th><th>Received by</th><th>Amount</th><th>Note</th><th></th></tr>';
+  rows.forEach(function(r){
+    h += '<tr><td>'+esc(r.date || fdate(r.created_at))+'</td><td>'+esc(r.person)+'</td><td>'+money(r.amount)+'</td><td>'+esc(r.note)+
+      '</td><td><button class="danger" onclick="delReimb('+r.id+')">Delete</button></td></tr>';
+  });
+  return h + '</table>';
+}
+async function delReimb(id){
+  if(!confirm('Delete this reimbursement?')) return;
+  var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'deletereimbursement', id:id, key:KEY})});
+  var j = await r.json();
+  if(j.ok) load(); else alert(j.error || 'Delete failed.');
 }
 function showTab(name, el){
   ['reg','don','exp','trash','email'].forEach(function(t){ document.getElementById('tab-'+t).classList.add('hidden'); });
@@ -319,7 +363,7 @@ async function delReg(btn, id){
   }catch(e){ alert('Connection error: ' + e.message); load(); }
 }
 function trashHTML(){
-  var tr = TRASH.registrations || [], td = TRASH.donations || [], te = TRASH.expenses || [];
+  var tr = TRASH.registrations || [], td = TRASH.donations || [], te = TRASH.expenses || [], tb = TRASH.reimbursements || [];
   var h = '<h3 style="margin-top:0">Trash</h3>' +
     '<p style="color:#8a7a5f;font-size:14px;margin-top:0">Deleted and cancelled items rest here and do not count toward totals. <b>Restore</b> brings an item back; <b>Delete forever</b> removes it permanently.</p>';
   h += '<h4>Cancelled registrations (' + tr.length + ')</h4>';
@@ -350,7 +394,29 @@ function trashHTML(){
     });
     h += '</table>';
   }
+  h += '<h4>Deleted reimbursements (' + tb.length + ')</h4>';
+  if(!tb.length) h += '<p style="color:#8a7a5f">None.</p>';
+  else {
+    h += '<table><tr><th>Date</th><th>Received by</th><th>Amount</th><th>Note</th><th></th></tr>';
+    tb.forEach(function(r){
+      h += '<tr><td>'+esc(r.date||fdate(r.created_at))+'</td><td>'+esc(r.person)+'</td><td>'+money(r.amount)+'</td><td>'+esc(r.note)+'</td><td style="white-space:nowrap"><button class="small" onclick="restoreReimb('+r.id+',this)">Restore</button> <button class="danger" onclick="wipeReimb(this,'+r.id+')">Delete forever</button></td></tr>';
+    });
+    h += '</table>';
+  }
   return h;
+}
+async function restoreReimb(id, btn){
+  btn.disabled = true; btn.textContent = 'Restoring…';
+  var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'restorereimbursement', id:id, key:KEY})});
+  var j = await r.json();
+  if(j.ok) load(); else { alert(j.error || 'Restore failed.'); load(); }
+}
+async function wipeReimb(btn, id){
+  if(!armStep(btn)) return;
+  btn.disabled = true; btn.textContent = 'Deleting…';
+  var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'permdeletereimbursement', id:id, key:KEY})});
+  var j = await r.json();
+  if(j.ok) load(); else { alert(j.error || 'Delete failed.'); load(); }
 }
 async function restoreDon(id, btn){
   btn.disabled = true; btn.textContent = 'Restoring…';
@@ -571,6 +637,16 @@ document.getElementById('expForm').addEventListener('submit', async function(e){
   var r = await fetch(BASE, {method:'POST', body: fd});
   var j = await r.json();
   if(j.ok){ msg.textContent = 'Saved.'; msg.className='okmsg'; e.target.reset(); load(); }
+  else { msg.textContent = j.error || 'Save failed.'; msg.className='err'; }
+});
+document.getElementById('reimbForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  var msg = document.getElementById('reimbMsg');
+  msg.textContent = 'Saving…'; msg.className = '';
+  var f = e.target;
+  var r = await fetch(BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'addreimbursement', key:KEY, date:f.date.value, person:f.person.value, amount:f.amount.value, note:f.note.value})});
+  var j = await r.json();
+  if(j.ok){ msg.textContent = 'Saved.'; msg.className='okmsg'; f.reset(); load(); }
   else { msg.textContent = j.error || 'Save failed.'; msg.className='err'; }
 });
 (function(){ try{ var k = localStorage.getItem('lf_key'); if(k){ document.getElementById('key').value = k; unlock(); } }catch(e){} })();
